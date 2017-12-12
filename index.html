@@ -2,6 +2,9 @@
 	<head>
 		<meta charset="UTF-8">
 	 	<link rel="stylesheet" href="http://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css">
+		<link rel="stylesheet" href="http://maxcdn.bootstrapcdn.com/font-awesome/4.2.0/css/font-awesome.min.css">
+<style>
+
 		 <!-- <link rel="stylesheet" href="bootstrap.css"> -->
 		 <title>Live WebLogger</title>
 		<style>
@@ -26,86 +29,15 @@
 		</style>
 		<script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.3.14/angular.min.js"></script>
 		<script src="jquery-3.2.1.min.js"></script>
+		<script src="datahandler.js"</script>
 		<script>
 			// Call the start up method after the page has finished loading
 			window.addEventListener("load", pageLoaded, false);
-			var db;
-			function dataReady(data) {
-				fitsHeaders = [];
-				for (var key in data[0]) {
-					fitsHeaders.push(key);
-				}
-				for (var i in data) {
-					for (var key in data[0]) {
-						if (fitsHeaders.indexOf(key)==-1) fitsHeaders.push(key);
-					}
-				}
-				db = data;
-				db.sort(function(a, b) {
-					var x = a.filename.toLowerCase();
-			    var y = b.filename.toLowerCase();
-			    return x < y ? -1 : x > y ? 1 : 0;
-				});
-
-				console.log(fitsHeaders);
-				$( "#logTable" ).html(buildTable(db))}
-
 			function pageLoaded() {
 				console.log("The page has loaded.");
-				// fetchJSONData(dataReady);
-				// console.log(db);
 			}
-
-			function buildTable(db) {
-				retString = "<table border='0' padding='4'>";
-				retString+= "<tr><th>Run number</th><th>Object</th><th>JD</th></tr>"
-				for (var i in db) {
-					retString+= "<tr>";
-					retString+= "<td>" + db[i].RUN + "</td>";
-					retString+= "<td>" + db[i].OBJECT + "</td>";
-					retString+= "<td>" + db[i].JD + "</td>";
-					retString+= "</tr>";
-				}
-				retString+= "</table>";
-				return retString;
-			}
-
-			function fetchJSONData(dataObject, callback) {
-				fetch('db.json')
-		  	.then(
-		    	function(response) {
-		      	if (response.status !== 200) {
-		        	console.log('Looks like there was a problem. Status Code: ' +
-		          	response.status);
-		        	return;
-		      	}
-
-		      	// Examine the text in the response
-		      	response.json().then(function(data) {
-							console.log("Fetched " + data.length + " rows from db.json");
-							callback(dataObject, data);
-		 	    	});
-		    	}
-		  	)
-		  	.catch(function(err) {
-		    	console.log('Fetch Error :-S', err);
-		  	});
-				function reqListener() {
-  				data = JSON.parse(this.responseText);
-				}
-
-				function reqError(err) {
-  				console.log('Fetch Error :-S', err);
-				}
-
-		}
-
 
 		</script>
-
-
-<!-- 					[ {'filename': '1', 'JD': '22222'}, {'filename': '2', 'JD': 'adjjks2'}, {'filename': '3', 'JD': 'skldldld'}];
--->
 
 </head>
 
@@ -113,17 +45,17 @@
 
 	<h1 id="pageheading">Live WebLogger</h1>
 
-	<div ng-app="MyApp" ng-controller="dbController" >
+	<div ng-app="LogApp" ng-controller="dbController" >
 		{{ statusString }}
 		<button class="btn" ng-click="clear()">Clear</button>
 		<button class="btn" ng-click="load()">Load</button>
 		<table id="logTable">
 			<tr>
-				<th ng-click="resort()">Run</th>
-				<th>Object</th>
-				<th>RA</th>
-				<th>DEC</th>
-				<th>UT</th>
+				<th ng-click="sortColumn = 'RUN'; sortReverse=!sortReverse">Run</th>
+				<th ng-click="sortColumn = 'OBJECT'; sortReverse=!sortReverse">Object</th>
+				<th ng-click="sortColumn = 'RA'; sortReverse=!sortReverse">RA</th>
+				<th ng-click="sortColumn = 'DEC'; sortReverse=!sortReverse">DEC</th>
+				<th ng-click="sortColumn = 'UT'; sortReverse=!sortReverse">UT</th>
 				<th>Airm</th>
 				<th>Instr</th>
 				<th>Texp</th>
@@ -133,20 +65,20 @@
 				<th>Grating</th>
 				<th>Cen. wave</th>
 			</tr>
-	  	<tr ng-repeat="x in db | orderBy:'-filename'">
-	    	<td>{{ x.RUN }}</td>
-	    	<td>{{ x.OBJECT }}</td>
-				<td>{{ x.RA }}</td>
-				<td>{{ x.DEC }}</td>
-				<td>{{ x.UTOBS }}</td>
-				<td>{{ x.AIRMASS }}</td>
-				<td>{{ x.INSTRUME }}</td>
-				<td>{{ x.EXPTIME }}</td>
-				<td>{{ x.ROTSKYPA | round }} </td>
-				<td>{{ x.ISIFILTA }}</td>
-				<td>{{ x.ISISLITW | round:1 }}</td>
-				<td>{{ x.ISIGRAT }}</td>
-				<td>{{ x.CENWAVE }}</td>
+	  	<tr ng-repeat="row in db | orderBy:sortColumn:sortReverse">
+	    	<td>{{ row.RUN }}</td>
+	    	<td>{{ row.OBJECT }}</td>
+				<td>{{ row.RA }}</td>
+				<td>{{ row.DEC }}</td>
+				<td>{{ row.UTOBS | formatTime }}</td>
+				<td>{{ row.AIRMASS | round:2 }}</td>
+				<td>{{ row.INSTRUME }}</td>
+				<td>{{ row.EXPTIME | round:0 }}</td>
+				<td>{{ row.ROTSKYPA | round }} </td>
+				<td>{{ row.ISIFILTA + "+" + row.ISIFILTB}}</td>
+				<td>{{ row.ISISLITW | round:1 }}</td>
+				<td>{{ row.ISIGRAT }}</td>
+				<td>{{ row.CENWAVE }}</td>
 
 			</tr>
 		</table>
@@ -157,81 +89,7 @@
 
 </body>
 
-<script>
-		var app = angular.module("MyApp", []);
-		app.controller("dbController", dbHandler)
-		app.filter('round', function() {
-  		return function(input, places) {
-				if (places==undefined) places = 0;
-				var multiplier = Math.pow(10, places);
-				var numberString = (Math.round(parseFloat(input)* multiplier) / multiplier).toString();
-				if (places>0) {
-					if (numberString.indexOf('.')==-1) numberString+=".";
-					var trailingZeros = places - numberString.split('.')[1].length;
-					for (var i=0; i<trailingZeros; i++) numberString = numberString + "0";
-				}
-				return numberString;
-			}
-		});
-
-		function dbHandler($scope, $http) {
-			console.log("Getting data");
-
-			function loadFromJSON($http) {
-				$http.get('db.json').
- 					success(function(data, status, headers, config) {
-				 		$scope.db = data;
-				 		console.log($scope.db);
-				 		$scope.statusString = "data ready";
-			 		}).
-			 		error(function(data, status, headers, config) {
-				 		console.log("There was an error when fetching the data.")
-			 		});
-				}
-
-			$scope.statusString = "data loading....";
-			loadFromJSON($http);
-
-
-			$scope.clear = function clear() {
-				console.log("Button clicked to clear the data");
-				$scope.db = [];
-				$scope.statusString = "Cleared data";
-				}
-
-			$scope.load = function load() {
-				console.log("Load button clicked");
-				$scope.statusString = "Reloading the data";
-				loadFromJSON($http);
-			}
-
-			$scope.resort = function resort() {
-				console.log("changing the sort order");
-				var sortArray = $scope.db;
-				sortArray.sort(function(a, b) {
-					var x = a.filename.toLowerCase();
-			    var y = b.filename.toLowerCase();
-			    return x < y ? -1 : x > y ? 1 : 0;
-				});
-				$scope.db = sortArray;
-			}
-		}
-
-
-		//app.controller("dbController", function($scope, $http) {
-		//  $http.get('db.json').
-		//   success(function(data, status, headers, config) {
-		//      $scope.db = data;
-		//			db = data;
-		//			console.log(db);
-		//    }).
-		//    error(function(data, status, headers, config) {
-		//      // log error
-		//    });
-		///		$scope.test = "Test value";
-		//		console.log($scope.test);
-		//});
-
-</script>
 
 </html>
+
+<!-- | orderBy:'-filename'" -->
