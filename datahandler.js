@@ -1,6 +1,9 @@
 var app = angular.module("LogApp", []);
 app.controller("dbController", dbHandler);
 
+var today = Date.now();
+console.log(today);
+
 app.filter('round', function() {
 	return function(input, places) {
 		if (places==undefined) places = 0;
@@ -17,7 +20,7 @@ app.filter('round', function() {
 
 app.filter('formatTime', function() {
 	return function(input) {
-		console.log(input);
+		if (input==null) return "";
 		var formattedString = "";
 		parts = input.split(':');
 		hours = parseInt(parts[0]);
@@ -34,12 +37,30 @@ app.filter('formatTime', function() {
 
 
 function dbHandler($scope, $http) {
+
+	// This event is triggered when the view has finished loading
+  // $scope.$on('$viewContentLoaded', function($scope) {
+  //   $scope.otherData = localStorage.getItem('myBackup')
+  // })
+
+
+	$scope.init = function() {
+		$scope.date = "20171210";
+		loadFromJSON($http, $scope);
+	}
+
 	$scope.sortColumn = 'filename'
 	$scope.sortReverse = true;
+	$scope.statusString = "data loading....";
+	dbfilename = "db.json";
+	$scope.telescopes = [{'name': "WHT", 'path' : 'whta', 'imageURL' : 'whtlogo.gif' },
+											 {'name': "INT", 'path' : 'inta', 'imageURL' : 'intlogo.gif'}];
+	$scope.telescope = $scope.telescopes[0];
 
 	function loadFromJSON($http) {
-		console.log("Getting data");
-		$http.get('db.json').
+		JSONfilename = $scope.telescope.path  + "/" + $scope.date + "/" + dbfilename;
+		console.log("Getting data at : " + JSONfilename);
+		$http.get(JSONfilename).
 			success(function(data, status, headers, config) {
 				$scope.db = data;
 				console.log($scope.db);
@@ -47,11 +68,10 @@ function dbHandler($scope, $http) {
 			}).
 			error(function(data, status, headers, config) {
 				console.log("There was an error when fetching the data.")
+				$scope.statusString = "no data!";
 			});
 		}
 
-	$scope.statusString = "data loading....";
-	loadFromJSON($http);
 
 
 	$scope.clear = function clear() {
@@ -62,18 +82,9 @@ function dbHandler($scope, $http) {
 
 	$scope.load = function load() {
 		console.log("Load button clicked");
+		console.log("Requested telescope: " + $scope.telescope + " on date: " + $scope.date);
 		$scope.statusString = "Reloading the data";
 		loadFromJSON($http);
-	}
+		}
 
-	$scope.resort = function resort() {
-		console.log("changing the sort order");
-		var sortArray = $scope.db;
-		sortArray.sort(function(a, b) {
-			var x = a.filename.toLowerCase();
-			var y = b.filename.toLowerCase();
-			return x < y ? -1 : x > y ? 1 : 0;
-		});
-		$scope.db = sortArray;
 	}
-}
