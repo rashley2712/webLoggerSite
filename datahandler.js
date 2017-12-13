@@ -45,10 +45,22 @@ function dbHandler($scope, $http) {
 
 
 	$scope.init = function() {
-		$scope.date = "20171210";
 		loadFromJSON($http, $scope);
 	}
 
+	if (localStorage.date==null) {
+		$scope.date = new Date();
+		logDateString = $scope.date.getFullYear() + ("0"+($scope.date.getMonth()+1)).slice(-2) + ("0" + $scope.date.getDate()).slice(-2);
+		localStorage.date = logDateString;
+	} else {
+		var year = localStorage.date.substring(0,4);
+		var month = localStorage.date.substring(4,6);
+		var day = localStorage.date.substring(6,8);
+		console.log("Restoring date:  " + year + ":" + month + ":" + day);
+		$scope.date = new Date(year, parseInt(month)-1, day);
+		console.log($scope.date);
+	}
+	$scope.dateString = localStorage.date;
 	$scope.sortColumn = 'filename'
 	$scope.sortReverse = true;
 	$scope.statusString = "data loading....";
@@ -58,7 +70,9 @@ function dbHandler($scope, $http) {
 	$scope.telescope = $scope.telescopes[0];
 
 	function loadFromJSON($http) {
-		JSONfilename = $scope.telescope.path  + "/" + $scope.date + "/" + dbfilename;
+		var datePath = $scope.date.getFullYear() + ("0"+($scope.date.getMonth()+1)).slice(-2) + ("0" + $scope.date.getDate()).slice(-2);
+		console.log("Date path: ", datePath);
+		JSONfilename = $scope.telescope.path  + "/" + datePath + "/" + dbfilename;
 		console.log("Getting data at : " + JSONfilename);
 		$http.get(JSONfilename).
 			success(function(data, status, headers, config) {
@@ -83,8 +97,18 @@ function dbHandler($scope, $http) {
 	$scope.load = function load() {
 		console.log("Load button clicked");
 		console.log("Requested telescope: " + $scope.telescope + " on date: " + $scope.date);
+		console.log("Saving to local storage");
+		localStorage.setItem('telescope', JSON.stringify($scope.telescope));
 		$scope.statusString = "Reloading the data";
 		loadFromJSON($http);
 		}
+
+	$scope.dateChange = function dateChange() {
+		console.log("Date changed to " + $scope.date);
+		logDateString = $scope.date.getFullYear() + ("0"+($scope.date.getMonth()+1)).slice(-2) + ("0" + $scope.date.getDate()).slice(-2);
+		console.log("Storing locally: " + logDateString);
+		localStorage.date = logDateString;
+		$scope.load();
+	}
 
 	}

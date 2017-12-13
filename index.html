@@ -34,11 +34,10 @@
 		<script>
 		window.addEventListener("load", pageLoaded, false);
 
-		var today = new Date();
-		var valueForDatePicker = today.getFullYear() + "-" + ("0"+(today.getMonth()+1)).slice(-2) + "-" + ("0" + today.getDate()).slice(-2);
+		var logDate = "";
 
 		function pageLoaded() {
-			document.getElementById("datePicker").value = valueForDatePicker;
+
 		}
 
 		</script>
@@ -48,17 +47,16 @@
 <body ng-app="LogApp"  ng-controller="dbController" ng-init="init()">
 <div>
 	<img ng-src="{{ telescope.imageURL }}" width="10%" align="right"/>
-	<h1 id="pageheading">{{ telescope.name }} Live WebLogger</h1>
+	<h1 id="pageheading">{{ telescope.name }} Log for {{ dateString }}</h1>
 	<select ng-model="telescope" ng-options="t.name for t in telescopes" ng-change="load()">
 	</select>
-  Current Telescope: {{ telescope.name }}
-	<input id="datePicker" type="date">
+	<input id="datePicker" ng-model="date" type="date" ng-change="dateChange()">
 </div>
 
 <br/>
 
 	<div>
-		{{ statusString }} 
+		{{ statusString }}
 		<button class="btn" ng-click="clear()">Clear</button>
 		<button class="btn" ng-click="load()">Load</button>
 		<table id="logTable">
