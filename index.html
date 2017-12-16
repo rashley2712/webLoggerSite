@@ -33,11 +33,8 @@
 
 		<script>
 		window.addEventListener("load", pageLoaded, false);
-
-		var logDate = "";
-
 		function pageLoaded() {
-
+			console.log("Page has loaded.")
 		}
 
 		</script>
@@ -45,15 +42,21 @@
 </head>
 
 <body ng-app="LogApp"  ng-controller="dbController" ng-init="init()">
-<div>
-	<img ng-src="{{ telescope.imageURL }}" width="10%" align="right"/>
-	<h1 id="pageheading">{{ telescope.name }} Log for {{ dateString }}</h1>
-	<select ng-model="telescope" ng-options="t.name for t in telescopes" ng-change="load()">
-	</select>
-	<input id="datePicker" ng-model="date" type="date" ng-change="dateChange()">
-</div>
+	<div>
+		<img ng-src="{{ telescope.imageURL }}" width="10%" align="right"/>
+		<h1 id="pageheading">{{ telescope.name }} log for {{ dateString }}</h1>
+		<select ng-model="telescope" ng-options="t.name for t in telescopes" ng-change="load()">
+		</select>
+		<input id="datePicker" ng-model="date" type="date" ng-change="dateChange()"> <button class="btn" ng-click="setToday()">Today</button>
+	</div>
 
-<br/>
+	<div>
+			<span ng-repeat="h in headerList" >
+				{{h}}
+			</span>
+	</div>
+
+	<br/>
 
 	<div>
 		{{ statusString }}
@@ -65,7 +68,7 @@
 				<th ng-click="sortColumn = 'OBJECT'; sortReverse=!sortReverse">Object</th>
 				<th ng-click="sortColumn = 'RA'; sortReverse=!sortReverse">RA</th>
 				<th ng-click="sortColumn = 'DEC'; sortReverse=!sortReverse">DEC</th>
-				<th ng-click="sortColumn = 'UT'; sortReverse=!sortReverse">UT</th>
+				<th ng-click="sortColumn = 'unixtime'; sortReverse=!sortReverse">UT</th>
 				<th>Airmass</th>
 				<th>Instrument</th>
 				<th>T<sub>exp</sub></th>
@@ -94,11 +97,7 @@
 	</div>
 
 
-
-
 </body>
 
 
 </html>
-
-<!-- | orderBy:'-filename'" -->

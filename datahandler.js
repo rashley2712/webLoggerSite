@@ -37,12 +37,15 @@ app.filter('formatTime', function() {
 
 
 function dbHandler($scope, $http) {
-
-	// This event is triggered when the view has finished loading
-  // $scope.$on('$viewContentLoaded', function($scope) {
-  //   $scope.otherData = localStorage.getItem('myBackup')
-  // })
-
+	$scope.telescopes = [{'name': "WHT", 'path' : 'whta', 'imageURL' : 'whtlogo.gif', 'colour':"red" },
+											 {'name': "INT", 'path' : 'inta', 'imageURL' : 'intlogo.gif', 'colour':"blue"}];
+	$scope.telescope = $scope.telescopes[0];
+	$scope.sortColumn = 'unixtime'
+	$scope.sortReverse = true;
+	$scope.statusString = "data loading....";
+	$scope.headerList = ['none'];
+	$scope.instrument = "Unknown";
+	dbfilename = "db.json";
 
 	$scope.init = function() {
 		loadFromJSON($http, $scope);
@@ -50,6 +53,7 @@ function dbHandler($scope, $http) {
 
 	if (localStorage.date==null) {
 		$scope.date = new Date();
+		if ($scope.date.getHours()<17) $scope.date.setDate($scope.date.getDate() - 1);
 		logDateString = $scope.date.getFullYear() + ("0"+($scope.date.getMonth()+1)).slice(-2) + ("0" + $scope.date.getDate()).slice(-2);
 		localStorage.date = logDateString;
 	} else {
@@ -58,57 +62,67 @@ function dbHandler($scope, $http) {
 		var day = localStorage.date.substring(6,8);
 		console.log("Restoring date:  " + year + ":" + month + ":" + day);
 		$scope.date = new Date(year, parseInt(month)-1, day);
-		console.log($scope.date);
 	}
+
+	if (localStorage.telescope!=null) {
+		console.log("Restoring telescope: " + localStorage.telescope);
+		$scope.telescope = JSON.parse(localStorage.telescope);
+	}
+
+
 	$scope.dateString = localStorage.date;
-	$scope.sortColumn = 'filename'
-	$scope.sortReverse = true;
-	$scope.statusString = "data loading....";
-	dbfilename = "db.json";
-	$scope.telescopes = [{'name': "WHT", 'path' : 'whta', 'imageURL' : 'whtlogo.gif' },
-											 {'name': "INT", 'path' : 'inta', 'imageURL' : 'intlogo.gif'}];
-	$scope.telescope = $scope.telescopes[0];
 
 	function loadFromJSON($http) {
 		var datePath = $scope.date.getFullYear() + ("0"+($scope.date.getMonth()+1)).slice(-2) + ("0" + $scope.date.getDate()).slice(-2);
-		console.log("Date path: ", datePath);
 		JSONfilename = $scope.telescope.path  + "/" + datePath + "/" + dbfilename;
 		console.log("Getting data at : " + JSONfilename);
 		$http.get(JSONfilename).
 			success(function(data, status, headers, config) {
 				$scope.db = data;
-				console.log($scope.db);
+				// console.log($scope.db);
 				$scope.statusString = "data ready";
+				generateHeaderlist(data);
 			}).
 			error(function(data, status, headers, config) {
 				console.log("There was an error when fetching the data.")
 				$scope.statusString = "no data!";
 			});
+	}
+
+	function generateHeaderlist(db) {
+		$scope.headerList = [];
+		for (var i in db) {
+			var keys = Object.keys(db[i])
+			for (var k in keys) {
+				if ($scope.headerList.indexOf(keys[k])==-1) $scope.headerList.push(keys[k]);
+			}
 		}
-
-
+		console.log($scope.headerList);
+	}
 
 	$scope.clear = function clear() {
-		console.log("Button clicked to clear the data");
+		console.log("Clearing the current data.");
 		$scope.db = [];
 		$scope.statusString = "Cleared data";
 		}
 
 	$scope.load = function load() {
 		console.log("Load button clicked");
-		console.log("Requested telescope: " + $scope.telescope + " on date: " + $scope.date);
+		console.log("Requested telescope: " + $scope.telescope.name + " on date: " + $scope.date);
 		console.log("Saving to local storage");
+		$scope.clear();
 		localStorage.setItem('telescope', JSON.stringify($scope.telescope));
 		$scope.statusString = "Reloading the data";
 		loadFromJSON($http);
-		}
+	}
 
 	$scope.dateChange = function dateChange() {
 		console.log("Date changed to " + $scope.date);
 		logDateString = $scope.date.getFullYear() + ("0"+($scope.date.getMonth()+1)).slice(-2) + ("0" + $scope.date.getDate()).slice(-2);
 		console.log("Storing locally: " + logDateString);
 		localStorage.date = logDateString;
+		$scope.dateString = localStorage.date;
 		$scope.load();
 	}
 
-	}
+}
