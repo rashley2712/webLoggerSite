@@ -1,4 +1,4 @@
-var app = angular.module("LogApp", []);
+var app = angular.module("LogApp", ['ngSanitize']);
 app.controller("dbController", dbHandler);
 
 var today = Date.now();
@@ -36,10 +36,31 @@ app.filter('formatTime', function() {
 });
 
 instrumentColumns = {
-	"all":  [ "RUN", "OBJECT", "RA", "DEC", "UTOBS", "AIRMASS", "EXPTIME", "ROTSKYPA"],
-	"IDS":  [ "SLITWID", "GRATNAME", "BSCFILT", "CENWAVE" ],
-	"ISIS": [ "ISISSLITW", "ISISFILTA", "ISISFILTB", "ISISGRAT", "CENWAVE"]
-}
+	"all":  [ 	{ 'id': "RUN", 		'name': 'Run', 				'sort': 'RUN', 		'format': 'none' },  
+			 	{ 'id': "OBJECT", 	'name': 'Object', 			'sort': 'OBJECT', 	'format': 'none' }, 
+				{ 'id': "RA", 		'name': 'RA', 				'sort': 'RA', 		'format': 'none' }, 
+				{ 'id': "DEC",		'name': 'DEC', 				'sort': 'DEC', 		'format': 'none' },  
+				{ 'id': "UTOBS",	'name': 'UT', 				'sort': 'unixtime', 'format': 'none' },
+		 		{ 'id': "AIRMASS",	'name': 'Airmass', 			'sort': 'AIRMASS', 	'format': 'round:2' },
+		 		{ 'id': "EXPTIME",  'name': 'T<sub>exp</sub>', 	'sort': 'EXPTIME', 	'format': 'none' },
+				{ 'id': "ROTSKYPA", 'name': 'Sky PA',			'sort': 'ROTSKYPA', 'format': 'none'} 
+			],
+	"IDS":  [ 	{ 'id': "SLITWID",	'name': 'Slit width',		'sort': 'SLITWID', 	'format': 'round:2' },
+				{ 'id': "GRATNAME", 'name': 'Grating', 			'sort': 'GRATNAME', 'format': 'none' },
+				{ 'id': "BSCFILT",  'name': 'Filter', 			'sort': 'BSCFILT', 	'format': 'none' },
+				{ 'id': "CENWAVE",  'name': 'Cen. wave', 		'sort': 'CENWAVE', 	'format': 'none' } 
+			],
+	"WFC":  [	{ 'id': "WFFPSYS",	'name': 'System',			'sort': 'WFFPSYS',  'format': 'none' },
+				{ 'id': "WFFBAND",	'name': 'Filter', 			'sort': 'WFFBAND',	'format': 'none' },
+				{ 'id': "CCDSPEED", 'name': 'Speed',			'sort': 'CCDSPEED', 'format': 'none' }
+			],
+	"ISIS": [	{ 'id': "ISISSLITW",'name': 'Slit width', 		'sort': 'ISISSLITW','format': 'round:2'},
+				{ 'id': "ISISFILTA",'name': 'Filter A', 		'sort': 'ISISFILTA','format': 'none' },
+				{ 'id': "ISISFILTB",'name': 'Filter B', 		'sort': 'ISISFILTB','format': 'none' },
+				{ 'id': "ISISGRAT", 'name': 'Grating', 			'sort': 'ISISGRAT', 'format': 'none' },
+				{ 'id': "CENWAVE", 	'name': 'Cen. wave', 		'sort': 'CENWAVE', 	'format': 'none' }
+			]
+	}
 
 
 function dbHandler($scope, $http) {
@@ -89,19 +110,37 @@ function dbHandler($scope, $http) {
 				// console.log($scope.db);
 				$scope.statusString = "data ready";
 				generateHeaderlist(data);
+				$scope.resort($scope.sortColumn, $scope.sortReverse);
+				
 			}).
 			error(function(data, status, headers, config) {
 				console.log("There was an error when fetching the data.")
 				$scope.statusString = "no data!";
 			});
+		
 	}
 
 	function generateHeaderlist(db) {
 		$scope.headerList = [];
 		$scope.instrument = db[0].INSTRUME;
-		$scope.columnNames = instrumentColumns.all;
+		console.log("Instrument: " + $scope.instrument);
+		$scope.columnIDs = [];
+		$scope.columnNames = [];
+		$scope.instrumentColumns = [];
+		for(c in instrumentColumns.all) {
+			console.log(instrumentColumns.all[c]);
+			$scope.columnIDs.push(instrumentColumns.all[c].id);
+			$scope.columnNames.push(instrumentColumns.all[c].name);
+			$scope.instrumentColumns.push(instrumentColumns.all[c]);
+		}
 		if ((db[0].INSTRUME).indexOf("ISIS")!=-1) $scope.instrument = "ISIS";
-		$scope.columnNames = $scope.columnNames.concat(instrumentColumns[$scope.instrument]);
+		for(c in instrumentColumns[$scope.instrument]) {
+			$scope.columnIDs.push(instrumentColumns[$scope.instrument][c].id);
+			$scope.columnNames.push(instrumentColumns[$scope.instrument][c].name);
+			$scope.instrumentColumns.push(instrumentColumns[$scope.instrument][c]);
+		}
+		console.log($scope.instrumentColumns);
+		//$scope.columnNames = $scope.columnNames.concat(instrumentColumns[$scope.instrument]);
 		for (var i in db) {
 			var keys = Object.keys(db[i])
 			for (var k in keys) {
@@ -130,6 +169,22 @@ function dbHandler($scope, $http) {
 	$scope.setToday = function setToday() {
 
 	}
+	
+	$scope.resort = function resort(property, reverse) {
+		console.log("Re-sort requested by " + property + " reverse " + reverse);
+		function compare(a,b) {
+		  if (a[property] < b[property])
+		    return -1;
+		  if (a[property] > b[property])
+		    return 1;
+		  return 0;
+		}
+		$scope.db.sort(compare);
+		if (reverse == true) $scope.db = $scope.db.reverse();
+		$scope.sortReverse = !$scope.sortReverse;
+
+	}
+	
 
 	$scope.dateChange = function dateChange() {
 		console.log("Date changed to " + $scope.date);
