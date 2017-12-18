@@ -44,15 +44,16 @@
 <body ng-app="LogApp"  ng-controller="dbController" ng-init="init()">
 	<div>
 		<img ng-src="{{ telescope.imageURL }}" width="10%" align="right"/>
-		<h1 id="pageheading">{{ telescope.name }} log for {{ dateString }}</h1>
+		<h1 id="pageheading">{{ telescope.name }} log for {{instrument}} on date: {{ dateString }}</h1>
 		<select ng-model="telescope" ng-options="t.name for t in telescopes" ng-change="load()">
 		</select>
 		<input id="datePicker" ng-model="date" type="date" ng-change="dateChange()"> <button class="btn" ng-click="setToday()">Today</button>
 	</div>
 
+
 	<div>
-			<span ng-repeat="h in headerList" >
-				{{h}}
+			<span ng-model="columnNames" ng-repeat="c in columnNames" >
+				{{c}}
 			</span>
 	</div>
 

@@ -35,6 +35,12 @@ app.filter('formatTime', function() {
 	}
 });
 
+instrumentColumns = {
+	"all":  [ "RUN", "OBJECT", "RA", "DEC", "UTOBS", "AIRMASS", "EXPTIME", "ROTSKYPA"],
+	"IDS":  [ "SLITWID", "GRATNAME", "BSCFILT", "CENWAVE" ],
+	"ISIS": [ "ISISSLITW", "ISISFILTA", "ISISFILTB", "ISISGRAT", "CENWAVE"]
+}
+
 
 function dbHandler($scope, $http) {
 	$scope.telescopes = [{'name': "WHT", 'path' : 'whta', 'imageURL' : 'whtlogo.gif', 'colour':"red" },
@@ -45,6 +51,7 @@ function dbHandler($scope, $http) {
 	$scope.statusString = "data loading....";
 	$scope.headerList = ['none'];
 	$scope.instrument = "Unknown";
+	$scope.columnNames = [];
 	dbfilename = "db.json";
 
 	$scope.init = function() {
@@ -91,6 +98,10 @@ function dbHandler($scope, $http) {
 
 	function generateHeaderlist(db) {
 		$scope.headerList = [];
+		$scope.instrument = db[0].INSTRUME;
+		$scope.columnNames = instrumentColumns.all;
+		if ((db[0].INSTRUME).indexOf("ISIS")!=-1) $scope.instrument = "ISIS";
+		$scope.columnNames = $scope.columnNames.concat(instrumentColumns[$scope.instrument]);
 		for (var i in db) {
 			var keys = Object.keys(db[i])
 			for (var k in keys) {
@@ -114,6 +125,10 @@ function dbHandler($scope, $http) {
 		localStorage.setItem('telescope', JSON.stringify($scope.telescope));
 		$scope.statusString = "Reloading the data";
 		loadFromJSON($http);
+	}
+
+	$scope.setToday = function setToday() {
+
 	}
 
 	$scope.dateChange = function dateChange() {
