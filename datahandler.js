@@ -6,7 +6,13 @@ console.log(today);
 
 app.filter('round', function() {
 	return function(input, places) {
-		if (places==undefined) places = 0;
+		return (Math.round(parseFloat(input)));
+	}
+});
+
+app.filter('round2', function() {
+	return function(input, places) {
+		if (places==undefined) places = 2;
 		var multiplier = Math.pow(10, places);
 		var numberString = (Math.round(parseFloat(input)* multiplier) / multiplier).toString();
 		if (places>0) {
@@ -17,6 +23,19 @@ app.filter('round', function() {
 		return numberString;
 	}
 });
+
+app.filter('picker', function($filter) {
+  return function(value, filterName) {
+    return $filter(filterName)(value);
+  };
+});
+
+app.filter('none', function() {
+	return function(input) {
+		return input;
+	};
+});
+
 
 app.filter('formatTime', function() {
 	return function(input) {
@@ -35,17 +54,19 @@ app.filter('formatTime', function() {
 	}
 });
 
+refreshDataTimeout = 10000;
+
 instrumentColumns = {
 	"all":  [ 	{ 'id': "RUN", 		'name': 'Run', 				'sort': 'RUN', 		'format': 'none' },  
 			 	{ 'id': "OBJECT", 	'name': 'Object', 			'sort': 'OBJECT', 	'format': 'none' }, 
 				{ 'id': "RA", 		'name': 'RA', 				'sort': 'RA', 		'format': 'none' }, 
 				{ 'id': "DEC",		'name': 'DEC', 				'sort': 'DEC', 		'format': 'none' },  
-				{ 'id': "UTOBS",	'name': 'UT', 				'sort': 'unixtime', 'format': 'none' },
-		 		{ 'id': "AIRMASS",	'name': 'Airmass', 			'sort': 'AIRMASS', 	'format': 'round:2' },
-		 		{ 'id': "EXPTIME",  'name': 'T<sub>exp</sub>', 	'sort': 'EXPTIME', 	'format': 'none' },
-				{ 'id': "ROTSKYPA", 'name': 'Sky PA',			'sort': 'ROTSKYPA', 'format': 'none'} 
+				{ 'id': "UTOBS",	'name': 'UT', 				'sort': 'unixtime', 'format': 'formatTime' },
+		 		{ 'id': "AIRMASS",	'name': 'Airmass', 			'sort': 'AIRMASS', 	'format': 'round2' },
+		 		{ 'id': "EXPTIME",  'name': 'T<sub>exp</sub>', 	'sort': 'EXPTIME', 	'format': 'round' },
+				{ 'id': "ROTSKYPA", 'name': 'Sky PA',			'sort': 'ROTSKYPA', 'format': 'round'} 
 			],
-	"IDS":  [ 	{ 'id': "SLITWID",	'name': 'Slit width',		'sort': 'SLITWID', 	'format': 'round:2' },
+	"IDS":  [ 	{ 'id': "SLITWID",	'name': 'Slit width',		'sort': 'SLITWID', 	'format': 'round' },
 				{ 'id': "GRATNAME", 'name': 'Grating', 			'sort': 'GRATNAME', 'format': 'none' },
 				{ 'id': "BSCFILT",  'name': 'Filter', 			'sort': 'BSCFILT', 	'format': 'none' },
 				{ 'id': "CENWAVE",  'name': 'Cen. wave', 		'sort': 'CENWAVE', 	'format': 'none' } 
@@ -54,7 +75,7 @@ instrumentColumns = {
 				{ 'id': "WFFBAND",	'name': 'Filter', 			'sort': 'WFFBAND',	'format': 'none' },
 				{ 'id': "CCDSPEED", 'name': 'Speed',			'sort': 'CCDSPEED', 'format': 'none' }
 			],
-	"ISIS": [	{ 'id': "ISISSLITW",'name': 'Slit width', 		'sort': 'ISISSLITW','format': 'round:2'},
+	"ISIS": [	{ 'id': "ISISSLITW",'name': 'Slit width', 		'sort': 'ISISSLITW','format': 'round'},
 				{ 'id': "ISISFILTA",'name': 'Filter A', 		'sort': 'ISISFILTA','format': 'none' },
 				{ 'id': "ISISFILTB",'name': 'Filter B', 		'sort': 'ISISFILTB','format': 'none' },
 				{ 'id': "ISISGRAT", 'name': 'Grating', 			'sort': 'ISISGRAT', 'format': 'none' },
@@ -67,6 +88,7 @@ function dbHandler($scope, $http) {
 	$scope.telescopes = [{'name': "WHT", 'path' : 'whta', 'imageURL' : 'whtlogo.gif', 'colour':"red" },
 											 {'name': "INT", 'path' : 'inta', 'imageURL' : 'intlogo.gif', 'colour':"blue"}];
 	$scope.telescope = $scope.telescopes[0];
+	$scope.instrumentColumns = instrumentColumns;
 	$scope.sortColumn = 'unixtime'
 	$scope.sortReverse = true;
 	$scope.statusString = "data loading....";
@@ -76,7 +98,14 @@ function dbHandler($scope, $http) {
 	dbfilename = "db.json";
 
 	$scope.init = function() {
-		loadFromJSON($http, $scope);
+		loadFromJSON($http , function(data) { 
+			console.log("In data callback.");
+			console.log(data);
+			generateHeaderlist(data);
+			$scope.db = data;
+			$scope.resort('unixtime', true);
+			$scope.statusString = "data ready.";
+			});
 	}
 
 	if (localStorage.date==null) {
@@ -100,18 +129,13 @@ function dbHandler($scope, $http) {
 
 	$scope.dateString = localStorage.date;
 
-	function loadFromJSON($http) {
+	function loadFromJSON($http, callback) {
 		var datePath = $scope.date.getFullYear() + ("0"+($scope.date.getMonth()+1)).slice(-2) + ("0" + $scope.date.getDate()).slice(-2);
 		JSONfilename = $scope.telescope.path  + "/" + datePath + "/" + dbfilename;
 		console.log("Getting data at : " + JSONfilename);
 		$http.get(JSONfilename).
 			success(function(data, status, headers, config) {
-				$scope.db = data;
-				// console.log($scope.db);
-				$scope.statusString = "data ready";
-				generateHeaderlist(data);
-				$scope.resort($scope.sortColumn, $scope.sortReverse);
-				
+				callback(data);
 			}).
 			error(function(data, status, headers, config) {
 				console.log("There was an error when fetching the data.")
@@ -156,15 +180,23 @@ function dbHandler($scope, $http) {
 		$scope.statusString = "Cleared data";
 		}
 
-	$scope.load = function load() {
-		console.log("Load button clicked");
-		console.log("Requested telescope: " + $scope.telescope.name + " on date: " + $scope.date);
-		console.log("Saving to local storage");
-		$scope.clear();
-		localStorage.setItem('telescope', JSON.stringify($scope.telescope));
-		$scope.statusString = "Reloading the data";
-		loadFromJSON($http);
+	$scope.reLoad = function reLoad() {
+			console.log("Timed reload event...");
+			$scope.statusString = "Reloading the data";
+			loadFromJSON($http, function(data) {
+				console.log("Got refreshed data");
+			});
+			console.log("Starting reload timer: " + refreshDataTimeout);
+			setTimeout($scope.reLoad, refreshDataTimeout);
 	}
+
+	$scope.startRefresh = function startRefresh() {
+		console.log("Refresh button clicked");
+		localStorage.setItem('telescope', JSON.stringify($scope.telescope));
+		console.log("Starting reload timer: " + refreshDataTimeout);
+		setTimeout($scope.reLoad, refreshDataTimeout);
+	}
+
 
 	$scope.setToday = function setToday() {
 
@@ -181,7 +213,7 @@ function dbHandler($scope, $http) {
 		}
 		$scope.db.sort(compare);
 		if (reverse == true) $scope.db = $scope.db.reverse();
-		$scope.sortReverse = !$scope.sortReverse;
+		//$scope.sortReverse = !$scope.sortReverse;
 
 	}
 	
