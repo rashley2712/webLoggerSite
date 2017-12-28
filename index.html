@@ -50,7 +50,7 @@
 		<h1 id="pageheading">{{ telescope.name }} log for {{instrument}} on date: {{ dateString }}</h1>
 		<select ng-model="telescope" ng-options="t.name for t in telescopes" ng-change="load()">
 		</select>
-		<input id="datePicker" ng-model="date" type="date" ng-change="dateChange"/>
+		<input id="datePicker" ng-model="date" type="date" ng-change="dateChange()"/>
 		<button class="btn" ng-click="clear()">Clear</button>
 		<button class="btn" ng-click="startRefresh()">Start refresh</button>
 	<table>

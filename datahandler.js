@@ -93,13 +93,16 @@ function dbHandler($scope, $http) {
 	$scope.sortReverse = true;
 	$scope.statusString = "data loading....";
 	$scope.headerList = ['none'];
-	$scope.instrument = "Unknown";
 	$scope.columnNames = [];
 	$scope.totalExposureTime = 0;
 	$scope.totalTargetTime = 0;
+	$scope.db = [];
 	dbfilename = "db.json";
 
 	$scope.init = function() {
+		$scope.totalExposureTime = 0;
+		$scope.totalTargetTime = 0;
+		$scope.instrument = "Unknown";
 		loadFromJSON($http , function(data) { 
 			console.log("In data callback.");
 			console.log(data);
@@ -184,11 +187,9 @@ function dbHandler($scope, $http) {
 		}
 
 	$scope.reLoad = function reLoad() {
-			console.log("Timed reload event...");
 			$scope.statusString = "Reloading the data";
 			loadFromJSON($http, function(data) {
 				console.log("Got refreshed data.");
-				// Compare new data to existing data using unixtime as comparator
 				existingFilenames = [];
 				for (d in $scope.db) existingFilenames.push($scope.db[d]['filename']);
 				var newItemCounter = 0;
@@ -202,15 +203,18 @@ function dbHandler($scope, $http) {
 				$scope.resort($scope.sortColumn, $scope.sortReverse);
 				calcStats();
 			});
-			console.log("Starting reload timer: " + refreshDataTimeout);
-			setTimeout($scope.reLoad, refreshDataTimeout);
 	}
 
 	$scope.startRefresh = function startRefresh() {
 		console.log("Refresh button clicked");
-		localStorage.setItem('telescope', JSON.stringify($scope.telescope));
+		timedReload();
+	}
+	
+	function timedReload() {
 		console.log("Starting reload timer: " + refreshDataTimeout);
-		setTimeout($scope.reLoad, refreshDataTimeout);
+		$scope.reLoad();
+		setTimeout(timedReload, refreshDataTimeout);
+		
 	}
 
 	calcStats = function calcStats() {
@@ -258,7 +262,8 @@ function dbHandler($scope, $http) {
 		console.log("Storing locally: " + logDateString);
 		localStorage.date = logDateString;
 		$scope.dateString = localStorage.date;
-		$scope.load();
+		$scope.clear();
+		$scope.init();
 	}
 
 }
