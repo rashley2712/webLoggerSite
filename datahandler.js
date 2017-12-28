@@ -103,7 +103,7 @@ function dbHandler($scope, $http) {
 			console.log(data);
 			generateHeaderlist(data);
 			$scope.db = data;
-			$scope.resort('unixtime', true);
+			$scope.resort($scope.sortColumn, $scope.sortReverse);
 			$scope.statusString = "data ready.";
 			});
 	}
@@ -131,9 +131,9 @@ function dbHandler($scope, $http) {
 
 	function loadFromJSON($http, callback) {
 		var datePath = $scope.date.getFullYear() + ("0"+($scope.date.getMonth()+1)).slice(-2) + ("0" + $scope.date.getDate()).slice(-2);
-		JSONfilename = $scope.telescope.path  + "/" + datePath + "/" + dbfilename;
+		JSONfilename = $scope.telescope.path  + "/" + datePath + "/" + dbfilename  + '?hash_id=' + Math.random();
 		console.log("Getting data at : " + JSONfilename);
-		$http.get(JSONfilename).
+		$http.get(JSONfilename,{cache: false}).
 			success(function(data, status, headers, config) {
 				callback(data);
 			}).
@@ -184,7 +184,21 @@ function dbHandler($scope, $http) {
 			console.log("Timed reload event...");
 			$scope.statusString = "Reloading the data";
 			loadFromJSON($http, function(data) {
-				console.log("Got refreshed data");
+				console.log("Got refreshed data.");
+				// Compare new data to existing data using unixtime as comparator
+				existingFilenames = [];
+				for (d in $scope.db) existingFilenames.push($scope.db[d]['filename']);
+				var newItemCounter = 0;
+				console.log("Old length:" + $scope.db.length);
+				console.log("New length:" + data.length);
+				
+				for (d in data) 
+					if (existingFilenames.indexOf(data[d]['filename']) == -1) {
+						$scope.db.push(data[d]);
+						newItemCounter++;
+					}
+				console.log("Found " + newItemCounter + " additional rows.");
+				$scope.resort($scope.sortColumn, $scope.sortReverse);
 			});
 			console.log("Starting reload timer: " + refreshDataTimeout);
 			setTimeout($scope.reLoad, refreshDataTimeout);
@@ -198,7 +212,11 @@ function dbHandler($scope, $http) {
 	}
 
 
-	$scope.setToday = function setToday() {
+	$scope.changeSort = function changeSort(columnName) {
+		console.log("Changing sort column from " + $scope.sortColumn + " to " + columnName);
+		$scope.sortColumn = columnName;
+		$scope.sortReverse = !$scope.sortReverse;
+		$scope.resort($scope.sortColumn, $scope.sortReverse);
 
 	}
 	

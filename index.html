@@ -60,9 +60,10 @@
 		{{ statusString }}
 		<button class="btn" ng-click="clear()">Clear</button>
 		<button class="btn" ng-click="startRefresh()">Start refresh</button>
+		<span>Sorting by: {{sortColumn}}  Reverse: {{ sortReverse }}</span>
 		
 		<table id="logTable" width="100%">
-			<tr><th ng-repeat="c in instrumentColumns" ng-click="resort(c.sort, sortReverse);"><span ng-bind-html="c.name">{{ c.name }}</span></th></tr>
+			<tr><th ng-repeat="c in instrumentColumns" ng-click="changeSort(c.sort);"><span ng-bind-html="c.name">{{ c.name }}</span></th></tr>
 			<tr ng-repeat="row in db">
 				<td ng-repeat="c in instrumentColumns">{{ row[c.id] | picker:c.format }}</td>
 			</tr> 
