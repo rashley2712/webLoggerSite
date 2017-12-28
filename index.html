@@ -50,7 +50,20 @@
 		<h1 id="pageheading">{{ telescope.name }} log for {{instrument}} on date: {{ dateString }}</h1>
 		<select ng-model="telescope" ng-options="t.name for t in telescopes" ng-change="load()">
 		</select>
-		<input id="datePicker" ng-model="date" type="date" ng-change="dateChange()"> <button class="btn" ng-click="setToday()">Today</button>
+		<input id="datePicker" ng-model="date" type="date" ng-change="dateChange"/>
+		<button class="btn" ng-click="clear()">Clear</button>
+		<button class="btn" ng-click="startRefresh()">Start refresh</button>
+	<table>
+		<tr>
+			<th>Total exposure time (s)</th>
+			<th>Total time on targets (s)</th>
+		</tr>
+		<tr>
+			<td>{{ totalExposureTime | round }}</td>
+			<td>{{ totalTargetTime | round }}</td>
+		</tr>
+		
+	<table>
 	</div>
 
 
@@ -58,8 +71,6 @@
 	
 	<div>
 		{{ statusString }}
-		<button class="btn" ng-click="clear()">Clear</button>
-		<button class="btn" ng-click="startRefresh()">Start refresh</button>
 		<span>Sorting by: {{sortColumn}}  Reverse: {{ sortReverse }}</span>
 		
 		<table id="logTable" width="100%">

@@ -95,6 +95,8 @@ function dbHandler($scope, $http) {
 	$scope.headerList = ['none'];
 	$scope.instrument = "Unknown";
 	$scope.columnNames = [];
+	$scope.totalExposureTime = 0;
+	$scope.totalTargetTime = 0;
 	dbfilename = "db.json";
 
 	$scope.init = function() {
@@ -105,6 +107,7 @@ function dbHandler($scope, $http) {
 			$scope.db = data;
 			$scope.resort($scope.sortColumn, $scope.sortReverse);
 			$scope.statusString = "data ready.";
+			calcStats();
 			});
 	}
 
@@ -189,16 +192,15 @@ function dbHandler($scope, $http) {
 				existingFilenames = [];
 				for (d in $scope.db) existingFilenames.push($scope.db[d]['filename']);
 				var newItemCounter = 0;
-				console.log("Old length:" + $scope.db.length);
-				console.log("New length:" + data.length);
-				
 				for (d in data) 
 					if (existingFilenames.indexOf(data[d]['filename']) == -1) {
 						$scope.db.push(data[d]);
 						newItemCounter++;
 					}
 				console.log("Found " + newItemCounter + " additional rows.");
+				$scope.statusString = "data ready";
 				$scope.resort($scope.sortColumn, $scope.sortReverse);
+				calcStats();
 			});
 			console.log("Starting reload timer: " + refreshDataTimeout);
 			setTimeout($scope.reLoad, refreshDataTimeout);
@@ -211,6 +213,20 @@ function dbHandler($scope, $http) {
 		setTimeout($scope.reLoad, refreshDataTimeout);
 	}
 
+	calcStats = function calcStats() {
+		var totalExposureTime = 0;
+		var totalTargetTime = 0;
+		for (var d in $scope.db) {
+			exptime = parseFloat($scope.db[d]['EXPTIME']);
+			if (!isNaN(exptime)) {
+				totalExposureTime+= exptime;
+				if ($scope.db[d]['OBSTYPE'] == 'TARGET') totalTargetTime+= exptime;
+			}
+			
+		}
+		$scope.totalExposureTime = totalExposureTime;
+		$scope.totalTargetTime = totalTargetTime;
+	}
 
 	$scope.changeSort = function changeSort(columnName) {
 		console.log("Changing sort column from " + $scope.sortColumn + " to " + columnName);
