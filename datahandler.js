@@ -57,28 +57,28 @@ app.filter('formatTime', function() {
 refreshDataTimeout = 10000;
 
 instrumentColumns = {
-	"all":  [ 	{ 'id': "RUN", 		'name': 'Run', 				'sort': 'RUN', 		'format': 'none' },  
-			 	{ 'id': "OBJECT", 	'name': 'Object', 			'sort': 'OBJECT', 	'format': 'none' }, 
-				{ 'id': "RA", 		'name': 'RA', 				'sort': 'RA', 		'format': 'none' }, 
-				{ 'id': "DEC",		'name': 'DEC', 				'sort': 'DEC', 		'format': 'none' },  
+	"all":  [ 	{ 'id': "RUN", 		'name': 'Run', 				'sort': 'RUN', 		'format': 'none' },
+			 	{ 'id': "OBJECT", 	'name': 'Object', 			'sort': 'OBJECT', 	'format': 'none' },
+				{ 'id': "RA", 		'name': 'RA', 				'sort': 'RA', 		'format': 'none' },
+				{ 'id': "DEC",		'name': 'DEC', 				'sort': 'DEC', 		'format': 'none' },
 				{ 'id': "UTOBS",	'name': 'UT', 				'sort': 'unixtime', 'format': 'formatTime' },
 		 		{ 'id': "AIRMASS",	'name': 'Airmass', 			'sort': 'AIRMASS', 	'format': 'round2' },
 		 		{ 'id': "EXPTIME",  'name': 'T<sub>exp</sub>', 	'sort': 'EXPTIME', 	'format': 'round' },
-				{ 'id': "ROTSKYPA", 'name': 'Sky PA',			'sort': 'ROTSKYPA', 'format': 'round'} 
+				{ 'id': "ROTSKYPA", 'name': 'Sky PA',			'sort': 'ROTSKYPA', 'format': 'round'}
 			],
 	"IDS":  [ 	{ 'id': "SLITWID",	'name': 'Slit width',		'sort': 'SLITWID', 	'format': 'round' },
 				{ 'id': "GRATNAME", 'name': 'Grating', 			'sort': 'GRATNAME', 'format': 'none' },
 				{ 'id': "BSCFILT",  'name': 'Filter', 			'sort': 'BSCFILT', 	'format': 'none' },
-				{ 'id': "CENWAVE",  'name': 'Cen. wave', 		'sort': 'CENWAVE', 	'format': 'none' } 
+				{ 'id': "CENWAVE",  'name': 'Cen. wave', 		'sort': 'CENWAVE', 	'format': 'none' }
 			],
 	"WFC":  [	{ 'id': "WFFPSYS",	'name': 'System',			'sort': 'WFFPSYS',  'format': 'none' },
 				{ 'id': "WFFBAND",	'name': 'Filter', 			'sort': 'WFFBAND',	'format': 'none' },
 				{ 'id': "CCDSPEED", 'name': 'Speed',			'sort': 'CCDSPEED', 'format': 'none' }
 			],
-	"ISIS": [	{ 'id': "ISISSLITW",'name': 'Slit width', 		'sort': 'ISISSLITW','format': 'round'},
-				{ 'id': "ISISFILTA",'name': 'Filter A', 		'sort': 'ISISFILTA','format': 'none' },
-				{ 'id': "ISISFILTB",'name': 'Filter B', 		'sort': 'ISISFILTB','format': 'none' },
-				{ 'id': "ISISGRAT", 'name': 'Grating', 			'sort': 'ISISGRAT', 'format': 'none' },
+	"ISIS": [	{ 'id': "ISISLITW",'name': 'Slit width', 		'sort': 'ISISLITW','format': 'round2'},
+				{ 'id': "ISIFILTA",'name': 'Filter A', 		'sort': 'ISIFILTA','format': 'none' },
+				{ 'id': "ISIFILTB",'name': 'Filter B', 		'sort': 'ISIFILTB','format': 'none' },
+				{ 'id': "ISIGRAT", 'name': 'Grating', 			'sort': 'ISIGRAT', 'format': 'none' },
 				{ 'id': "CENWAVE", 	'name': 'Cen. wave', 		'sort': 'CENWAVE', 	'format': 'none' }
 			]
 	}
@@ -91,25 +91,32 @@ function dbHandler($scope, $http) {
 	$scope.instrumentColumns = instrumentColumns;
 	$scope.sortColumn = 'unixtime'
 	$scope.sortReverse = true;
-	$scope.statusString = "data loading....";
+	$scope.statusString = "unknown";
 	$scope.headerList = ['none'];
 	$scope.columnNames = [];
 	$scope.totalExposureTime = 0;
 	$scope.totalTargetTime = 0;
 	$scope.db = [];
+	$scope.refreshDataTime = 10;
+	$scope.refreshStyle = "inactive";
+	$scope.refreshText = "";
+	$scope.timeLeft = 10;
 	dbfilename = "db.json";
+	refreshTimerID = null;
 
 	$scope.init = function() {
+		$scope.clear();
 		$scope.totalExposureTime = 0;
 		$scope.totalTargetTime = 0;
 		$scope.instrument = "Unknown";
-		loadFromJSON($http , function(data) { 
+		$scope.statusString = "init";
+		loadFromJSON($http , function(data) {
 			console.log("In data callback.");
 			console.log(data);
 			generateHeaderlist(data);
 			$scope.db = data;
 			$scope.resort($scope.sortColumn, $scope.sortReverse);
-			$scope.statusString = "data ready.";
+			$scope.statusString = "ready";
 			calcStats();
 			});
 	}
@@ -132,22 +139,22 @@ function dbHandler($scope, $http) {
 		$scope.telescope = JSON.parse(localStorage.telescope);
 	}
 
-
 	$scope.dateString = localStorage.date;
 
 	function loadFromJSON($http, callback) {
 		var datePath = $scope.date.getFullYear() + ("0"+($scope.date.getMonth()+1)).slice(-2) + ("0" + $scope.date.getDate()).slice(-2);
 		JSONfilename = $scope.telescope.path  + "/" + datePath + "/" + dbfilename  + '?hash_id=' + Math.random();
 		console.log("Getting data at : " + JSONfilename);
+		$scope.statusString = "loading";
 		$http.get(JSONfilename,{cache: false}).
 			success(function(data, status, headers, config) {
 				callback(data);
 			}).
 			error(function(data, status, headers, config) {
 				console.log("There was an error when fetching the data.")
-				$scope.statusString = "no data!";
+				$scope.statusString = "error";
 			});
-		
+
 	}
 
 	function generateHeaderlist(db) {
@@ -183,39 +190,55 @@ function dbHandler($scope, $http) {
 	$scope.clear = function clear() {
 		console.log("Clearing the current data.");
 		$scope.db = [];
-		$scope.statusString = "Cleared data";
+		$scope.statusString = "clear";
 		}
 
 	$scope.reLoad = function reLoad() {
-			$scope.statusString = "Reloading the data";
+			$scope.statusString = "reload";
 			loadFromJSON($http, function(data) {
 				console.log("Got refreshed data.");
 				existingFilenames = [];
 				for (d in $scope.db) existingFilenames.push($scope.db[d]['filename']);
 				var newItemCounter = 0;
-				for (d in data) 
+				for (d in data)
 					if (existingFilenames.indexOf(data[d]['filename']) == -1) {
 						$scope.db.push(data[d]);
 						newItemCounter++;
 					}
 				console.log("Found " + newItemCounter + " additional rows.");
-				$scope.statusString = "data ready";
+				$scope.statusString = "calc";
 				$scope.resort($scope.sortColumn, $scope.sortReverse);
 				calcStats();
+				$scope.statusString = "ready";
 			});
 	}
 
-	$scope.startRefresh = function startRefresh() {
-		console.log("Refresh button clicked");
-		timedReload();
+	$scope.toggleRefresh = function toggleRefresh() {
+		if (refreshTimerID==null) {
+			console.log("Starting the refresh sequence");
+			refreshTimerID = setInterval($scope.refreshHandler, 1000);
+			$scope.refreshDataTime = $scope.timeLeft;
+			$scope.refreshText = $scope.timeLeft +  " s";
+			$scope.refreshStyle = "active";
+		}	else {
+			console.log("Stopping the refresh sequence");
+			clearTimeout(refreshTimerID);
+			refreshTimerID = null;
+			$scope.refreshText = "";
+			$scope.refreshStyle = "inactive";
+		}
 	}
-	
-	function timedReload() {
-		console.log("Starting reload timer: " + refreshDataTimeout);
-		$scope.reLoad();
-		setTimeout(timedReload, refreshDataTimeout);
-		
+
+	$scope.refreshHandler = function refreshHandler() {
+		$scope.timeLeft--;
+		$scope.refreshText = $scope.timeLeft +  " s";
+		$scope.$apply();
+		if ($scope.timeLeft<=0) {
+			$scope.reLoad();
+			$scope.timeLeft = $scope.refreshDataTime;
+		}
 	}
+
 
 	calcStats = function calcStats() {
 		var totalExposureTime = 0;
@@ -226,7 +249,7 @@ function dbHandler($scope, $http) {
 				totalExposureTime+= exptime;
 				if ($scope.db[d]['OBSTYPE'] == 'TARGET') totalTargetTime+= exptime;
 			}
-			
+
 		}
 		$scope.totalExposureTime = totalExposureTime;
 		$scope.totalTargetTime = totalTargetTime;
@@ -239,7 +262,7 @@ function dbHandler($scope, $http) {
 		$scope.resort($scope.sortColumn, $scope.sortReverse);
 
 	}
-	
+
 	$scope.resort = function resort(property, reverse) {
 		console.log("Re-sort requested by " + property + " reverse " + reverse);
 		function compare(a,b) {
@@ -254,7 +277,7 @@ function dbHandler($scope, $http) {
 		//$scope.sortReverse = !$scope.sortReverse;
 
 	}
-	
+
 
 	$scope.dateChange = function dateChange() {
 		console.log("Date changed to " + $scope.date);
