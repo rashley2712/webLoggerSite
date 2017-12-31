@@ -101,8 +101,11 @@ function dbHandler($scope, $http) {
 	$scope.refreshStyle = "inactive";
 	$scope.refreshText = "";
 	$scope.timeLeft = 10;
+	$scope.tbVisible = "hidden";
+	datePath="";
 	dbfilename = "db.json";
 	refreshTimerID = null;
+	previewMode = false;
 
 	$scope.init = function() {
 		$scope.clear();
@@ -142,7 +145,7 @@ function dbHandler($scope, $http) {
 	$scope.dateString = localStorage.date;
 
 	function loadFromJSON($http, callback) {
-		var datePath = $scope.date.getFullYear() + ("0"+($scope.date.getMonth()+1)).slice(-2) + ("0" + $scope.date.getDate()).slice(-2);
+		datePath = $scope.date.getFullYear() + ("0"+($scope.date.getMonth()+1)).slice(-2) + ("0" + $scope.date.getDate()).slice(-2);
 		JSONfilename = $scope.telescope.path  + "/" + datePath + "/" + dbfilename  + '?hash_id=' + Math.random();
 		console.log("Getting data at : " + JSONfilename);
 		$scope.statusString = "loading";
@@ -187,10 +190,40 @@ function dbHandler($scope, $http) {
 		console.log($scope.headerList);
 	}
 
+	$scope.updatePreview = function updatePreview(imgFilename, $event) {
+		if(!previewMode) return;
+		var imageInfo = null;
+		for (var d in $scope.db) {
+			if ($scope.db[d]['filename']==imgFilename) {
+				imageInfo = $scope.db[d]['imageData'];
+				break;
+			}
+		}
+		$scope.currentThumbnail = $scope.telescope.path  + "/" + datePath + "/" + imageInfo.src;
+		$scope.tbVisible = 'visible';
+		$scope.previewX = $event.x;
+		$scope.previewY = $event.y+20;
+	}
+
+	$scope.removePreview = function removePreview() {
+		$scope.tbVisible = 'hidden';
+	}
+
+	$scope.togglePreview = function togglePreview(imgFilename, $event) {
+		console.log("Toggle preview");
+		previewMode = !previewMode;
+		if (!previewMode) $scope.removePreview;
+		else $scope.updatePreview(imgFilename, $event);
+	}
+
+
 	$scope.clear = function clear() {
 		console.log("Clearing the current data.");
 		$scope.db = [];
 		$scope.statusString = "clear";
+		$scope.totalExposureTime = 0;
+		$scope.totalTargetTime = 0;
+
 		}
 
 	$scope.reLoad = function reLoad() {
@@ -278,6 +311,12 @@ function dbHandler($scope, $http) {
 
 	}
 
+	$scope.telescopeChange = function telescopeChange() {
+		console.log("Changing telescope to ", $scope.telescope);
+		localStorage.telescope = JSON.stringify($scope.telescope);
+		$scope.clear();
+		$scope.init();
+	}
 
 	$scope.dateChange = function dateChange() {
 		console.log("Date changed to " + $scope.date);

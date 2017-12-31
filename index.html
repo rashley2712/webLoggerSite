@@ -40,6 +40,12 @@
 				border: 1px solid black;
 			}
 
+			.clearfix::after {
+    		content: "";
+    		clear: both;
+    		display: table;
+			}
+
 		</style>
 		<script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.3.14/angular.min.js"></script>
 		<script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.6.4/angular-sanitize.js"></script>
@@ -91,6 +97,11 @@
 			return timeString;
 		}
 
+		//function checkFunction(data) {
+		//	console.log("Inside checkFunction");
+		//	console.log(data);
+		//}
+
 
 		function formatUTCTime(date) {
 			return zeroPad(date.getUTCHours()) + ":" + zeroPad(date.getUTCMinutes()) + ":" + zeroPad(date.getUTCSeconds());
@@ -120,7 +131,7 @@
   </p>
   <p>
 	<div>
-		<select ng-model="telescope" ng-options="t.name for t in telescopes" ng-change="init()">
+		<select ng-model="telescope" ng-options="t.name for t in telescopes" ng-change="telescopeChange()">
 		</select>
 		<input id="datePicker" ng-model="date" type="date" ng-change="dateChange()"/>
 		<button class="btn" ng-click="clear()">Clear</button>
@@ -151,10 +162,14 @@
 
 		<table id="logTable" width="100%">
 			<tr><th ng-repeat="c in instrumentColumns" ng-click="changeSort(c.sort);"><span ng-bind-html="c.name">{{ c.name }}</span></th></tr>
-			<tr ng-repeat="row in db">
+			<tr ng-repeat="row in db" ng-click="togglePreview(row['filename'], $event)" ng-mouseover="updatePreview(row['filename'], $event)" ng-mouseleave="removePreview()">
 				<td ng-repeat="c in instrumentColumns">{{ row[c.id] | picker:c.format }}</td>
 			</tr>
 		</table>
+	</div>
+	<div id="imagediv" style="position: fixed; z-index: 1; left: {{previewX}}px; top: {{previewY}}px; background-color: blue; font-size: 14px; opacity: 1.0; visibility: {{tbVisible}};">
+			<img ng-src="{{ currentThumbnail }}" width="400" height="400" />
+
 	</div>
 	<br/>
 
