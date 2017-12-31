@@ -119,8 +119,9 @@ function dbHandler($scope, $http) {
 			generateHeaderlist(data);
 			$scope.db = data;
 			$scope.resort($scope.sortColumn, $scope.sortReverse);
-			$scope.statusString = "ready";
 			calcStats();
+			$scope.statusString = "ready";
+			setLatestFrame();
 			});
 	}
 
@@ -190,6 +191,25 @@ function dbHandler($scope, $http) {
 		console.log($scope.headerList);
 	}
 
+	function setLatestFrame() {
+		dbCopy = $scope.db;
+		property = 'unixtime';
+		function compare(a,b) {
+			if (a[property] < b[property])
+				return -1;
+			if (a[property] > b[property])
+				return 1;
+			return 0;
+		}
+		dbCopy.sort(compare);
+		dbCopy = dbCopy.reverse();
+		console.log("Most recent entry is ", dbCopy[0]);
+		$scope.latestSrc = $scope.telescope.path  + "/" + datePath + "/" + dbCopy[0]['imageData'].src;
+		console.log($scope.latestSrc);
+		dbCopy = null;
+
+	}
+
 	$scope.updatePreview = function updatePreview(imgFilename, $event) {
 		if(!previewMode) return;
 		var imageInfo = null;
@@ -199,7 +219,7 @@ function dbHandler($scope, $http) {
 				break;
 			}
 		}
-		$scope.currentThumbnail = $scope.telescope.path  + "/" + datePath + "/" + imageInfo.src;
+		$scope.currentThumbnail = $scope.telescope.path  + "/" + datePath + "/" + imageInfo.tb_src;
 		$scope.tbVisible = 'visible';
 		$scope.previewX = $event.x;
 		$scope.previewY = $event.y+20;
@@ -212,7 +232,7 @@ function dbHandler($scope, $http) {
 	$scope.togglePreview = function togglePreview(imgFilename, $event) {
 		console.log("Toggle preview");
 		previewMode = !previewMode;
-		if (!previewMode) $scope.removePreview;
+		if (!previewMode) $scope.removePreview();
 		else $scope.updatePreview(imgFilename, $event);
 	}
 
@@ -243,6 +263,7 @@ function dbHandler($scope, $http) {
 				$scope.resort($scope.sortColumn, $scope.sortReverse);
 				calcStats();
 				$scope.statusString = "ready";
+				setLatestFrame();
 			});
 	}
 

@@ -115,7 +115,7 @@
 <body ng-app="LogApp"  ng-controller="dbController" ng-init="init()">
 	<p>
 		<div>
-			<img ng-src="{{ telescope.imageURL }}" width="10%" align="right"/>
+			<img ng-src="{{ telescope.imageURL }}" width="10%" style="float:left"/>
 			<table align="right" id="timeTable">
 				<tr>
 					<th>UT</th>
@@ -141,6 +141,16 @@
 			</button>
 			<input id="refreshTimer" ng-model="timeLeft" size='2' align='right'/>
 		</span>
+
+		<img ng-src="{{ latestSrc }}" style="float:right;width:256px;height:256px"/>
+	</div>
+
+
+	<br/>
+
+	<div>
+		{{ statusString }}
+		<span>Sorting by: {{sortColumn}}  Reverse: {{ sortReverse }}</span>
 		<table>
 			<tr>
 				<th>Total exposure time (s)</th>
@@ -151,15 +161,6 @@
 				<td>{{ totalTargetTime | round }}</td>
 			</tr>
 		</table>
-	</div>
-
-
-	<br/>
-
-	<div>
-		{{ statusString }}
-		<span>Sorting by: {{sortColumn}}  Reverse: {{ sortReverse }}</span>
-
 		<table id="logTable" width="100%">
 			<tr><th ng-repeat="c in instrumentColumns" ng-click="changeSort(c.sort);"><span ng-bind-html="c.name">{{ c.name }}</span></th></tr>
 			<tr ng-repeat="row in db" ng-click="togglePreview(row['filename'], $event)" ng-mouseover="updatePreview(row['filename'], $event)" ng-mouseleave="removePreview()">
@@ -168,7 +169,7 @@
 		</table>
 	</div>
 	<div id="imagediv" style="position: fixed; z-index: 1; left: {{previewX}}px; top: {{previewY}}px; background-color: blue; font-size: 14px; opacity: 1.0; visibility: {{tbVisible}};">
-			<img ng-src="{{ currentThumbnail }}" width="400" height="400" />
+			<img ng-src="{{ currentThumbnail }}" width="256" height="256" />
 
 	</div>
 	<br/>
