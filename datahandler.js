@@ -66,7 +66,7 @@ instrumentColumns = {
 		 		{ 'id': "EXPTIME",  'name': 'T<sub>exp</sub>', 	'sort': 'EXPTIME', 	'format': 'round' },
 				{ 'id': "ROTSKYPA", 'name': 'Sky PA',			'sort': 'ROTSKYPA', 'format': 'round'}
 			],
-	"IDS":  [ 	{ 'id': "SLITWID",	'name': 'Slit width',		'sort': 'SLITWID', 	'format': 'round' },
+	"IDS":  [ 	{ 'id': "SLTWDSKY",	'name': 'Slit width',		'sort': 'SLITWID', 	'format': 'round2' },
 				{ 'id': "GRATNAME", 'name': 'Grating', 			'sort': 'GRATNAME', 'format': 'none' },
 				{ 'id': "BSCFILT",  'name': 'Filter', 			'sort': 'BSCFILT', 	'format': 'none' },
 				{ 'id': "CENWAVE",  'name': 'Cen. wave', 		'sort': 'CENWAVE', 	'format': 'none' }
