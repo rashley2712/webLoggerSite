@@ -102,6 +102,7 @@ function dbHandler($scope, $http) {
 	$scope.refreshText = "";
 	$scope.timeLeft = 10;
 	$scope.tbVisible = "hidden";
+	$scope.JSONPayload = 0;
 	datePath="";
 	dbfilename = "db.json.gz";
 	refreshTimerID = null;
@@ -152,6 +153,7 @@ function dbHandler($scope, $http) {
 		$scope.statusString = "loading";
 		$http.get(JSONfilename,{cache: false}).
 			success(function(data, status, headers, config) {
+				console.log(headers());
 				callback(data);
 			}).
 			error(function(data, status, headers, config) {

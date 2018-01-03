@@ -3,11 +3,29 @@
 		<meta charset="UTF-8">
 	 	<link rel="stylesheet" href="http://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css">
 		<link rel="stylesheet" href="http://maxcdn.bootstrapcdn.com/font-awesome/4.2.0/css/font-awesome.min.css">
+		<link href='https://fonts.googleapis.com/css?family=Exo' rel='stylesheet' type='text/css'>
+		<link href="https://fonts.googleapis.com/css?family=Bungee+Shade" rel="stylesheet">
 <style>
 
 		 <!-- <link rel="stylesheet" href="bootstrap.css"> -->
 		 <title>Live WebLogger</title>
 		<style>
+			@font-face{
+ 				font-family:'digitalClock';
+ 				src: url('digital-7.ttf');
+				}
+			.clocks {
+				position:absolute;
+				top:0px;
+				left:0px;
+				background-color:lightblue;
+				font-family:'digitalClock';
+				}
+
+			.timeDisplay {
+				background-color:lightblue;
+				}
+
 			.headerdata {
 				font-size: 10pt;
 				}
@@ -113,19 +131,20 @@
 </head>
 
 <body ng-app="LogApp"  ng-controller="dbController" ng-init="init()">
+	<table class="clocks">
+		<tr>
+			<th>UT</th>
+			<th>LST</th>
+		</tr>
+		<tr>
+			<td class='timeDisplay'><span id="UTField">--:--</span></td>
+			<td class='timeDisplay'><span id="LSTField">--:--</span></td>
+		</tr>
+	</table>
+</div>
 	<p>
 		<div>
 			<img ng-src="{{ telescope.imageURL }}" width="10%" style="float:left"/>
-			<table align="right" id="timeTable">
-				<tr>
-					<th>UT</th>
-					<th>LST</th>
-				</tr>
-				<tr>
-					<td><span id="UTField">--:--</span></td>
-					<td><span id="LSTField">--:--</span></td>
-				</tr>
-			</table>
 		<h1 id="pageheading">{{ telescope.name }} log for {{instrument}} on date: {{ dateString }}</h1>
 	</div>
   </p>
