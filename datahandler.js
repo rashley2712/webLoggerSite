@@ -103,7 +103,7 @@ function dbHandler($scope, $http) {
 	$scope.timeLeft = 10;
 	$scope.tbVisible = "hidden";
 	datePath="";
-	dbfilename = "db.json";
+	dbfilename = "db.json.gz";
 	refreshTimerID = null;
 	previewMode = false;
 
@@ -114,8 +114,8 @@ function dbHandler($scope, $http) {
 		$scope.instrument = "Unknown";
 		$scope.statusString = "init";
 		loadFromJSON($http , function(data) {
-			console.log("In data callback.");
-			console.log(data);
+			//console.log("In data callback.");
+			//console.log(data);
 			generateHeaderlist(data);
 			$scope.db = data;
 			$scope.resort($scope.sortColumn, $scope.sortReverse);
