@@ -104,7 +104,7 @@ function dbHandler($scope, $http) {
 	$scope.tbVisible = "hidden";
 	$scope.JSONPayload = 0;
 	datePath="";
-	dbfilename = "db.json.gz";
+	dbfilename = "db.json";
 	refreshTimerID = null;
 	previewMode = false;
 
