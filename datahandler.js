@@ -154,6 +154,7 @@ function dbHandler($scope, $http) {
 		$http.get(JSONfilename,{cache: false}).
 			success(function(data, status, headers, config) {
 				console.log(headers());
+				console.log(data);
 				callback(data);
 			}).
 			error(function(data, status, headers, config) {
