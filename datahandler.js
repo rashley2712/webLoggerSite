@@ -221,7 +221,7 @@ function dbHandler($scope, $http) {
 				break;
 			}
 		}
-		$scope.currentThumbnail = $scope.telescope.path  + "/" + datePath + "/" + imageInfo.tb_src;
+		$scope.currentThumbnail = $scope.telescope.path  + "/" + datePath + "/" + imageInfo.src;
 		$scope.tbVisible = 'visible';
 		$scope.previewX = $event.x;
 		$scope.previewY = $event.y+20;
