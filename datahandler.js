@@ -178,7 +178,7 @@ function dbHandler($scope, $http) {
 				}
 			}
 		}
-
+		console.log(instrumentList, instrumentCounter);
 		if (instrumentList.length>0) $scope.instrument = instrumentList[indexOfMax(instrumentCounter)];
 		else $scope.instrument = "Unknown";
 		console.log("Instrument: " + $scope.instrument);
