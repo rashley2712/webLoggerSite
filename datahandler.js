@@ -165,18 +165,33 @@ function dbHandler($scope, $http) {
 
 	function generateHeaderlist(db) {
 		$scope.headerList = [];
-		$scope.instrument = db[0].INSTRUME;
+		instrumentCounter = [];
+		instrumentList =[];
+		for (d in db) {
+			if (db[d].INSTRUME) {
+				if (instrumentList.indexOf(db[d].INSTRUME)==-1) {
+					instrumentList.push(db[d].INSTRUME);
+					instrumentCounter.push(1);
+				}
+				else {
+					instrumentCounter[instrumentList.indexOf(db[d].INSTRUME)]++;
+				}
+			}
+		}
+
+		if (instrumentList.length>0) $scope.instrument = instrumentList[indexOfMax(instrumentCounter)];
+		else $scope.instrument = "Unknown";
 		console.log("Instrument: " + $scope.instrument);
 		$scope.columnIDs = [];
 		$scope.columnNames = [];
 		$scope.instrumentColumns = [];
 		for(c in instrumentColumns.all) {
-			console.log(instrumentColumns.all[c]);
+			//console.log(instrumentColumns.all[c]);
 			$scope.columnIDs.push(instrumentColumns.all[c].id);
 			$scope.columnNames.push(instrumentColumns.all[c].name);
 			$scope.instrumentColumns.push(instrumentColumns.all[c]);
 		}
-		if ((db[0].INSTRUME).indexOf("ISIS")!=-1) $scope.instrument = "ISIS";
+		if ($scope.instrument.indexOf("ISIS")!=-1) $scope.instrument = "ISIS";
 		for(c in instrumentColumns[$scope.instrument]) {
 			$scope.columnIDs.push(instrumentColumns[$scope.instrument][c].id);
 			$scope.columnNames.push(instrumentColumns[$scope.instrument][c].name);
@@ -351,4 +366,22 @@ function dbHandler($scope, $http) {
 		$scope.init();
 	}
 
+}
+
+function indexOfMax(arr) {
+    if (arr.length === 0) {
+        return -1;
+    }
+
+    var max = arr[0];
+    var maxIndex = 0;
+
+    for (var i = 1; i < arr.length; i++) {
+        if (arr[i] > max) {
+            maxIndex = i;
+            max = arr[i];
+        }
+    }
+
+    return maxIndex;
 }
