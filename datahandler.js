@@ -168,6 +168,7 @@ function dbHandler($scope, $http) {
 		instrumentCounter = [];
 		instrumentList =[];
 		for (d in db) {
+			console.log(d, db[d].INSTRUME);
 			if (db[d].INSTRUME) {
 				if (instrumentList.indexOf(db[d].INSTRUME)==-1) {
 					instrumentList.push(db[d].INSTRUME);
