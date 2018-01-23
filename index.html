@@ -3,17 +3,12 @@
 		<meta charset="UTF-8">
 	 	<link rel="stylesheet" href="http://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css">
 		<link rel="stylesheet" href="http://maxcdn.bootstrapcdn.com/font-awesome/4.2.0/css/font-awesome.min.css">
-		<link href='https://fonts.googleapis.com/css?family=Exo' rel='stylesheet' type='text/css'>
-		<link href="https://fonts.googleapis.com/css?family=Bungee+Shade" rel="stylesheet">
 <style>
 
 		 <!-- <link rel="stylesheet" href="bootstrap.css"> -->
 		 <title>Live WebLogger</title>
+
 		<style>
-			@font-face{
- 				font-family:'digitalClock';
- 				src: url('digital-7.ttf');
-				}
 			.clocks {
 				position:absolute;
 				top:0px;
@@ -29,6 +24,11 @@
 			.headerdata {
 				font-size: 10pt;
 				}
+
+			.columnHeader {
+				background-color: lightgrey;
+			}
+
 			#logTable tr:hover {
      		background-color: lightgrey;
 			}
@@ -73,6 +73,7 @@
 		<script language="javascript" type="text/javascript" src="astro.js-master/astro.ephem.js"></script>
 
 		<script src="datahandler.js"></script>
+		<script src="formats.js"></script>
 		<!--<script src="jquery-3.2.1.min.js"></script> -->
 
 		<script>
@@ -92,24 +93,6 @@
 		}
 
 
-		function decimalPlacesFloat(value, places) {
-			multiplier = Math.pow(10, places);
-			return Math.round(value*multiplier) / multiplier;
-		}
-
-		function decimalPlacesString(value, places) {
-			floatValue = decimalPlacesFloat(value, places);
-			numberString = floatValue.toString();
-			trailingZeros = places - numberString.split('.')[1].length;
-			for (var i=0; i<trailingZeros; i++) numberString = numberString + "0";
-			return numberString;
-		}
-
-		function zeroPad(input) {
-			if (input < 10) return "0" + input.toString();
-			return input.toString();
-		}
-
 	    // As packages may require dependencies that load
 	    // asynchronously, we should wait for them
 	    astrojs.ready(function(e){
@@ -121,25 +104,6 @@
 			console.log("LST: ", timeDecimalToHMS(astrojs.dates.getLST(new Date(), 342.1184)));
 	    });
 
-		function timeDecimalToHMS(inputTime){
-			hours = Math.floor(inputTime);
-			inputTime-=hours;
-			minutes = Math.floor(inputTime*60);
-			inputTime = inputTime*60 - minutes;
-			seconds = Math.floor(inputTime*60);
-			timeString = zeroPad(hours) + ":" + zeroPad(minutes) + ":" + zeroPad(seconds);
-			return timeString;
-		}
-
-		//function checkFunction(data) {
-		//	console.log("Inside checkFunction");
-		//	console.log(data);
-		//}
-
-
-		function formatUTCTime(date) {
-			return zeroPad(date.getUTCHours()) + ":" + zeroPad(date.getUTCMinutes()) + ":" + zeroPad(date.getUTCSeconds());
-			}
 
 
 		</script>
@@ -182,21 +146,18 @@
 	<br/>
 
 	<div>
-		{{ statusString }}
-		<span>Sorting by: {{sortColumn}}  Reverse: {{ sortReverse }}</span>
-		<table>
+
+		<table width="100%">
 			<tr>
-				<th>Total exposure time (s)</th>
-				<th>Total time on targets (s)</th>
-			</tr>
-			<tr>
-				<td>{{ totalExposureTime | round }}</td>
-				<td>{{ totalTargetTime | round }}</td>
+				<td><span class="glyphicon glyphicon-picture {{previewStyle}}" ng-click="togglePreview()" ></span></td>
+				<td>Time since last exposure: <b>03:04</b></td>
+				<td>Total exposure time: <b>{{ totalExposureTime | round }}s</b></td>
+				<td>Time on science targets: <b>{{ totalTargetTime | round }}s</b></td>
 			</tr>
 		</table>
 		<table id="logTable" width="100%">
 			<tr><th ng-repeat="c in instrumentColumns" ng-click="changeSort(c.sort);"><span ng-bind-html="c.name">{{ c.name }}</span></th></tr>
-			<tr ng-repeat="row in db" ng-click="togglePreview(row['filename'], $event)" ng-mouseover="updatePreview(row['filename'], $event)" ng-mouseleave="removePreview()">
+			<tr ng-repeat="row in db" ng-click="openDetails(row['filename'], $event)" ng-mouseover="updatePreview(row['filename'], $event)" ng-mouseleave="removePreview()">
 				<td ng-repeat="c in instrumentColumns">{{ row[c.id] | picker:c.format }}</td>
 			</tr>
 		</table>
@@ -205,6 +166,16 @@
 			<img ng-src="{{ currentThumbnail }}" width="256" height="256" />
 
 	</div>
+	<div id="detailsdiv" style="position: fixed; z-index: 1; left: 50px; top: 150px; font-size: 14px; opacity: 1.0; visibility: visible; width=400px;" >
+			<table>
+				<tr>
+					<td class='columnHeader'>Filename:</td><td>r494949393.fit</td>
+				</tr>
+			</table>
+	</div>
+
+	{{ statusString }}
+	<span>Sorting by: {{sortColumn}}  Reverse: {{ sortReverse }}</span>
 	<br/>
 
 </body>

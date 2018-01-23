@@ -99,6 +99,7 @@ function dbHandler($scope, $http) {
 	$scope.db = [];
 	$scope.refreshDataTime = 10;
 	$scope.refreshStyle = "inactive";
+	$scope.previewStyle = "inactive";
 	$scope.refreshText = "";
 	$scope.timeLeft = 10;
 	$scope.tbVisible = "hidden";
@@ -248,13 +249,21 @@ function dbHandler($scope, $http) {
 		$scope.tbVisible = 'hidden';
 	}
 
-	$scope.togglePreview = function togglePreview(imgFilename, $event) {
+	$scope.togglePreview = function togglePreview() {
 		console.log("Toggle preview");
 		previewMode = !previewMode;
-		if (!previewMode) $scope.removePreview();
-		else $scope.updatePreview(imgFilename, $event);
+		if (!previewMode) {
+			$scope.removePreview();
+			$scope.previewStyle = 'inactive';
+		} else {
+			$scope.previewStyle = 'active';
+		}
 	}
 
+
+	$scope.openDetails = function openDetails(imgFilename, $event) {
+		console.log("Getting detailed info for: " + imgFilename);
+	}
 
 	$scope.clear = function clear() {
 		console.log("Clearing the current data.");
