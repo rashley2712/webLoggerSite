@@ -19,11 +19,11 @@
 				top:0px;
 				left:0px;
 				background-color:lightblue;
-				font-family:'digitalClock';
+				border: 0px;
 				}
 
 			.timeDisplay {
-				background-color:lightblue;
+				background-color:lightgray;
 				}
 
 			.headerdata {
@@ -55,7 +55,7 @@
 			}
 
 			#timeTable table, th, tr {
-				border: 1px solid black;
+				border: 0px solid black;
 			}
 
 			.clearfix::after {
@@ -87,6 +87,22 @@
 			LMSiderealTime = astrojs.dates.getLST(now, 342.1184);
 			document.getElementById('UTField').innerText = formatUTCTime(now);
 			document.getElementById('LSTField').innerText = timeDecimalToHMS(LMSiderealTime);
+			document.getElementById('JDField').innerText = decimalPlacesString(astrojs.dates.getJulianDate(), 4);
+
+		}
+
+
+		function decimalPlacesFloat(value, places) {
+			multiplier = Math.pow(10, places);
+			return Math.round(value*multiplier) / multiplier;
+		}
+
+		function decimalPlacesString(value, places) {
+			floatValue = decimalPlacesFloat(value, places);
+			numberString = floatValue.toString();
+			trailingZeros = places - numberString.split('.')[1].length;
+			for (var i=0; i<trailingZeros; i++) numberString = numberString + "0";
+			return numberString;
 		}
 
 		function zeroPad(input) {
@@ -131,17 +147,21 @@
 </head>
 
 <body ng-app="LogApp"  ng-controller="dbController" ng-init="init()">
-	<table class="clocks">
+	<table class="clocks timeTable">
 		<tr>
-			<th>UT</th>
-			<th>LST</th>
-		</tr>
-		<tr>
-			<td class='timeDisplay'><span id="UTField">--:--</span></td>
-			<td class='timeDisplay'><span id="LSTField">--:--</span></td>
+			<td class='timeDisplay'>UT: <b><span id="UTField">--:--</span></b></td>
+			<td class='timeDisplay'>LST: <b><span id="LSTField">--:--</span></b></td>
+			<td class='timeDisplay'>JD: <b><span id="JDField">--</span></b></td>
+			<td class="timeDisplay">Auto refresh: <span class="{{refreshStyle}}">
+				<button class="btn btn-default" aria-label="Left Align" ng-click="toggleRefresh()" >
+					<span class="glyphicon glyphicon-refresh {{refreshStyle}}" id="refreshicon"></span>
+				</button>
+				<input id="refreshTimer" ng-model="timeLeft" size='2' align='right'/>
+				</span>
+			</td>
 		</tr>
 	</table>
-</div>
+	<p>&nbsp;</p>
 	<p>
 		<div>
 			<img ng-src="{{ telescope.imageURL }}" width="10%" style="float:left"/>
@@ -154,12 +174,6 @@
 		</select>
 		<input id="datePicker" ng-model="date" type="date" ng-change="dateChange()"/>
 		<button class="btn" ng-click="clear()">Clear</button>
-		<span class="{{refreshStyle}}">
-			<button class="btn btn-default" aria-label="Left Align" ng-click="toggleRefresh()" >
-				<span class="glyphicon glyphicon-refresh {{refreshStyle}}" id="refreshicon"></span>
-			</button>
-			<input id="refreshTimer" ng-model="timeLeft" size='2' align='right'/>
-		</span>
 
 		<img ng-src="{{ latestSrc }}" style="float:right;width:256px;height:256px"/>
 	</div>
@@ -187,7 +201,7 @@
 			</tr>
 		</table>
 	</div>
-	<div id="imagediv" style="position: fixed; z-index: 1; left: {{previewX}}px; top: {{previewY}}px; background-color: blue; font-size: 14px; opacity: 1.0; visibility: {{tbVisible}};">
+	<div id="imagediv" style="position: fixed; z-index: 1; left: {{previewX}}px; top: {{previewY}}px; font-size: 14px; opacity: 1.0; visibility: {{tbVisible}};">
 			<img ng-src="{{ currentThumbnail }}" width="256" height="256" />
 
 	</div>

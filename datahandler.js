@@ -69,7 +69,7 @@ instrumentColumns = {
 	"IDS":  [ 	{ 'id': "SLTWDSKY",	'name': 'Slit width',		'sort': 'SLITWID', 	'format': 'round2' },
 				{ 'id': "GRATNAME", 'name': 'Grating', 			'sort': 'GRATNAME', 'format': 'none' },
 				{ 'id': "BSCFILT",  'name': 'Filter', 			'sort': 'BSCFILT', 	'format': 'none' },
-				{ 'id': "CENWAVE",  'name': 'Cen. wave', 		'sort': 'CENWAVE', 	'format': 'none' }
+				{ 'id': "CENWAVE",  'name': 'Cen. wave', 		'sort': 'CENWAVE', 	'format': 'round' }
 			],
 	"WFC":  [	{ 'id': "WFFPSYS",	'name': 'System',			'sort': 'WFFPSYS',  'format': 'none' },
 				{ 'id': "WFFBAND",	'name': 'Filter', 			'sort': 'WFFBAND',	'format': 'none' },
@@ -166,10 +166,11 @@ function dbHandler($scope, $http) {
 
 	function generateHeaderlist(db) {
 		$scope.headerList = [];
+
+		// Run through all the headers to see which instrument is mentioned the most often
 		instrumentCounter = [];
-		instrumentList =[];
+		instrumentList = [];
 		for (d in db) {
-			//console.log(d, db[d].INSTRUME);
 			if (db[d].INSTRUME) {
 				if (instrumentList.indexOf(db[d].INSTRUME)==-1) {
 					instrumentList.push(db[d].INSTRUME);
@@ -180,7 +181,6 @@ function dbHandler($scope, $http) {
 				}
 			}
 		}
-		console.log(instrumentList, instrumentCounter);
 		if (instrumentList.length>0) $scope.instrument = instrumentList[indexOfMax(instrumentCounter)];
 		else $scope.instrument = "Unknown";
 		console.log("Instrument: " + $scope.instrument);
@@ -188,7 +188,6 @@ function dbHandler($scope, $http) {
 		$scope.columnNames = [];
 		$scope.instrumentColumns = [];
 		for(c in instrumentColumns.all) {
-			//console.log(instrumentColumns.all[c]);
 			$scope.columnIDs.push(instrumentColumns.all[c].id);
 			$scope.columnNames.push(instrumentColumns.all[c].name);
 			$scope.instrumentColumns.push(instrumentColumns.all[c]);
@@ -238,7 +237,8 @@ function dbHandler($scope, $http) {
 				break;
 			}
 		}
-		$scope.currentThumbnail = $scope.telescope.path  + "/" + datePath + "/" + imageInfo.src;
+		if (imageInfo==null) $scope.currentThumbnail = "nodata.png";
+		else $scope.currentThumbnail = $scope.telescope.path  + "/" + datePath + "/" + imageInfo.src;
 		$scope.tbVisible = 'visible';
 		$scope.previewX = $event.x;
 		$scope.previewY = $event.y+20;
