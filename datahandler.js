@@ -100,14 +100,19 @@ function dbHandler($scope, $http) {
 	$scope.refreshDataTime = 10;
 	$scope.refreshStyle = "inactive";
 	$scope.previewStyle = "inactive";
+	$scope.detailsStyle = "inactive";
+	$scope.detailsVisible = "hidden";
 	$scope.refreshText = "";
 	$scope.timeLeft = 10;
 	$scope.tbVisible = "hidden";
 	$scope.JSONPayload = 0;
+	$scope.activeRecord = null;
+
 	datePath="";
 	dbfilename = "db.json";
 	refreshTimerID = null;
 	previewMode = false;
+	detailsMode = false;
 
 	$scope.init = function() {
 		$scope.clear();
@@ -230,16 +235,30 @@ function dbHandler($scope, $http) {
 	}
 
 	$scope.updatePreview = function updatePreview(imgFilename, $event) {
-		if(!previewMode) return;
 		var imageInfo = null;
 		for (var d in $scope.db) {
 			if ($scope.db[d]['filename']==imgFilename) {
 				imageInfo = $scope.db[d]['imageData'];
+				$scope.activeRecord = $scope.db[d];
 				break;
 			}
 		}
-		if (imageInfo==null) $scope.currentThumbnail = "nodata.png";
-		else $scope.currentThumbnail = $scope.telescope.path  + "/" + datePath + "/" + imageInfo.src;
+		if(!previewMode) return;
+		if (imageInfo==null) {
+			$scope.currentThumbnail = "nodata.png";
+			$scope.previewWidth = 256;
+			$scope.previewHeight = 256;
+		}
+		else {
+			$scope.currentThumbnail = $scope.telescope.path  + "/" + datePath + "/" + imageInfo.src;
+			var height = imageInfo.size[0];
+			var width = imageInfo.size[1];
+			if (height>=width) {
+				$scope.previewHeight = 256;
+				$scope.previewWidth = width / height * 256;
+				console.log($scope.previewHeight, $scope.previewWidth);
+			}
+		}
 		$scope.tbVisible = 'visible';
 		$scope.previewX = $event.x;
 		$scope.previewY = $event.y+20;
@@ -257,6 +276,19 @@ function dbHandler($scope, $http) {
 			$scope.previewStyle = 'inactive';
 		} else {
 			$scope.previewStyle = 'active';
+		}
+	}
+
+	$scope.toggleDetails = function toggleDetails() {
+		console.log("Toggle details");
+		detailsMode = !detailsMode;
+		if (!detailsMode) {
+			$scope.detailsVisible = 'hidden';
+			$scope.detailsStyle = 'inactive';
+		} else {
+			$scope.detailsStyle = 'active';
+			$scope.detailsVisible = 'visible'
+
 		}
 	}
 

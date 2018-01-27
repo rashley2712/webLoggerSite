@@ -10,8 +10,8 @@
 
 		<style>
 			.clocks {
-				position:absolute;
-				top:0px;
+				position: fixed;
+				top:20px;
 				left:0px;
 				background-color:lightblue;
 				border: 0px;
@@ -27,6 +27,10 @@
 
 			.columnHeader {
 				background-color: lightgrey;
+			}
+
+			.details {
+				font-size: 10px;
 			}
 
 			#logTable tr:hover {
@@ -111,20 +115,23 @@
 </head>
 
 <body ng-app="LogApp"  ng-controller="dbController" ng-init="init()">
-	<table class="clocks timeTable">
-		<tr>
-			<td class='timeDisplay'>UT: <b><span id="UTField">--:--</span></b></td>
-			<td class='timeDisplay'>LST: <b><span id="LSTField">--:--</span></b></td>
-			<td class='timeDisplay'>JD: <b><span id="JDField">--</span></b></td>
-			<td class="timeDisplay">Auto refresh: <span class="{{refreshStyle}}">
-				<button class="btn btn-default" aria-label="Left Align" ng-click="toggleRefresh()" >
-					<span class="glyphicon glyphicon-refresh {{refreshStyle}}" id="refreshicon"></span>
-				</button>
-				<input id="refreshTimer" ng-model="timeLeft" size='2' align='right'/>
-				</span>
-			</td>
-		</tr>
-	</table>
+	<div style="position: fixed;">
+		<table>
+			<tr>
+				<td class='timeDisplay'>
+					<span class="glyphicon glyphicon-picture {{previewStyle}}" ng-click="togglePreview()" ></span>
+				 	|
+					<span class="glyphicon glyphicon-list-alt {{detailsStyle}}" ng-click="toggleDetails()" ></span>
+				 	|
+					<span class="glyphicon glyphicon-refresh {{refreshStyle}}" id="refreshicon" ng-click="toggleRefresh()"></span>
+					<input id="refreshTimer" ng-model="timeLeft" size='2' align='right'/>
+				</td>
+				<td class='timeDisplay'>UT: <b><span id="UTField">--:--</span></b></td>
+				<td class='timeDisplay'>LST: <b><span id="LSTField">--:--</span></b></td>
+				<td class='timeDisplay'>JD: <b><span id="JDField">--</span></b></td>
+			</tr>
+		</table>
+	</div>
 	<p>&nbsp;</p>
 	<p>
 		<div>
@@ -139,7 +146,7 @@
 		<input id="datePicker" ng-model="date" type="date" ng-change="dateChange()"/>
 		<button class="btn" ng-click="clear()">Clear</button>
 
-		<img ng-src="{{ latestSrc }}" style="float:right;width:256px;height:256px"/>
+		<img ng-src="{{ latestSrc }}" style="width:512px;height:512px"/>
 	</div>
 
 
@@ -149,7 +156,6 @@
 
 		<table width="100%">
 			<tr>
-				<td><span class="glyphicon glyphicon-picture {{previewStyle}}" ng-click="togglePreview()" ></span></td>
 				<td>Time since last exposure: <b>03:04</b></td>
 				<td>Total exposure time: <b>{{ totalExposureTime | round }}s</b></td>
 				<td>Time on science targets: <b>{{ totalTargetTime | round }}s</b></td>
@@ -163,17 +169,16 @@
 		</table>
 	</div>
 	<div id="imagediv" style="position: fixed; z-index: 1; left: {{previewX}}px; top: {{previewY}}px; font-size: 14px; opacity: 1.0; visibility: {{tbVisible}};">
-			<img ng-src="{{ currentThumbnail }}" width="256" height="256" />
+			<img ng-src="{{ currentThumbnail }}" width="{{previewWidth}}" height="previewHeight" />
 
 	</div>
-	<div id="detailsdiv" style="position: fixed; z-index: 1; left: 50px; top: 150px; font-size: 14px; opacity: 1.0; visibility: visible; width=400px;" >
-			<table>
-				<tr>
-					<td class='columnHeader'>Filename:</td><td>r494949393.fit</td>
+	<div id="detailsdiv" style="position: fixed; z-index: 1; left: 50px; top: 150px; font-size: 10pt; opacity: 0.75; visibility: {{detailsVisible}}; width=400px;" >
+			<table class='details'>
+				<tr ng-repeat="item in activeRecord">
+					<td class='columnHeader'>{{item}}</td>
 				</tr>
 			</table>
 	</div>
-
 	{{ statusString }}
 	<span>Sorting by: {{sortColumn}}  Reverse: {{ sortReverse }}</span>
 	<br/>
