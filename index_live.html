@@ -1,0 +1,189 @@
+<html>
+	<head>
+		<meta charset="UTF-8">
+	 	<link rel="stylesheet" href="http://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css">
+		<link rel="stylesheet" href="http://maxcdn.bootstrapcdn.com/font-awesome/4.2.0/css/font-awesome.min.css">
+<style>
+
+		 <!-- <link rel="stylesheet" href="bootstrap.css"> -->
+		 <title>Live WebLogger</title>
+
+		<style>
+			.clocks {
+				position: fixed;
+				top:20px;
+				left:0px;
+				background-color:lightblue;
+				border: 0px;
+				}
+
+			.timeDisplay {
+				background-color:lightgray;
+				}
+
+			.headerdata {
+				font-size: 10pt;
+				}
+
+			.columnHeader {
+				background-color: lightgrey;
+			}
+
+			.details {
+				font-size: 10px;
+			}
+
+			#logTable tr:hover {
+     		background-color: lightgrey;
+			}
+
+			.inactive {
+				color: #aaaaaa;
+			}
+
+			.active {
+				color: #000000;
+			}
+
+			table {
+    			border-collapse: collapse;
+			}
+
+			table, th {
+    			border: 1px solid black;
+			}
+
+			th, td {
+    			padding: 5px;
+    			text-align: center;
+			}
+
+			#timeTable table, th, tr {
+				border: 0px solid black;
+			}
+
+			.clearfix::after {
+    		content: "";
+    		clear: both;
+    		display: table;
+			}
+
+		</style>
+		<script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.3.14/angular.min.js"></script>
+		<script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.6.4/angular-sanitize.js"></script>
+		<script language="javascript" type="text/javascript" src="astro.js-master/astro.js"></script>
+		<script language="javascript" type="text/javascript" src="astro.js-master/astro.constants.js"></script>
+		<script language="javascript" type="text/javascript" src="astro.js-master/astro.dates.js"></script>
+		<script language="javascript" type="text/javascript" src="astro.js-master/astro.ephem.js"></script>
+
+		<script src="datahandler.js"></script>
+		<script src="formats.js"></script>
+		<!--<script src="jquery-3.2.1.min.js"></script> -->
+
+		<script>
+		window.addEventListener("load", pageLoaded, false);
+		function pageLoaded() {
+			console.log("Page has loaded.");
+			timerID = setInterval(clockTicker, 1000);
+		}
+
+		function clockTicker() {
+			var now = new Date();
+			LMSiderealTime = astrojs.dates.getLST(now, 342.1184);
+			document.getElementById('UTField').innerText = formatUTCTime(now);
+			document.getElementById('LSTField').innerText = timeDecimalToHMS(LMSiderealTime);
+			document.getElementById('JDField').innerText = decimalPlacesString(astrojs.dates.getJulianDate(), 4);
+
+		}
+
+
+	    // As packages may require dependencies that load
+	    // asynchronously, we should wait for them
+	    astrojs.ready(function(e){
+	        console.log("astro.js is ready.");
+	        var jd = astrojs.dates.getJulianDate();
+	        console.log("Julian date: ", jd);                  //  print the Julian Date to the console
+	        console.log("Sun position: ", astrojs.ephem.sunPos(jd));
+	        console.log("Moon position: ", astrojs.ephem.moonPos(jd));
+			console.log("LST: ", timeDecimalToHMS(astrojs.dates.getLST(new Date(), 342.1184)));
+	    });
+
+
+
+		</script>
+
+</head>
+
+<body ng-app="LogApp"  ng-controller="dbController" ng-init="init()">
+	<div style="position: fixed;">
+		<table>
+			<tr>
+				<td class='timeDisplay'>
+					<span class="glyphicon glyphicon-picture {{previewStyle}}" ng-click="togglePreview()" ></span>
+				 	|
+					<span class="glyphicon glyphicon-list-alt {{detailsStyle}}" ng-click="toggleDetails()" ></span>
+				 	|
+					<span class="glyphicon glyphicon-refresh {{refreshStyle}}" id="refreshicon" ng-click="toggleRefresh()"></span>
+					<input id="refreshTimer" ng-model="timeLeft" size='2' align='right'/>
+				</td>
+				<td class='timeDisplay'>UT: <b><span id="UTField">--:--</span></b></td>
+				<td class='timeDisplay'>LST: <b><span id="LSTField">--:--</span></b></td>
+				<td class='timeDisplay'>JD: <b><span id="JDField">--</span></b></td>
+			</tr>
+		</table>
+	</div>
+	<p>&nbsp;</p>
+	<p>
+		<div>
+			<img ng-src="{{ telescope.imageURL }}" width="10%" style="float:left"/>
+		<h1 id="pageheading">{{ telescope.name }} log for {{instrument}} on date: {{ dateString }}</h1>
+	</div>
+  </p>
+  <p>
+	<div>
+		<select ng-model="telescope" ng-options="t.name for t in telescopes" ng-change="telescopeChange()">
+		</select>
+		<input id="datePicker" ng-model="date" type="date" ng-change="dateChange()"/>
+		<button class="btn" ng-click="clear()">Clear</button>
+
+		<img ng-src="{{ latestSrc }}" style="width:512px;height:512px"/>
+	</div>
+
+
+	<br/>
+
+	<div>
+
+		<table width="100%">
+			<tr>
+				<td>Time since last exposure: <b>03:04</b></td>
+				<td>Total exposure time: <b>{{ totalExposureTime | round }}s</b></td>
+				<td>Time on science targets: <b>{{ totalTargetTime | round }}s</b></td>
+			</tr>
+		</table>
+		<table id="logTable" width="100%">
+			<tr><th ng-repeat="c in instrumentColumns" ng-click="changeSort(c.sort);"><span ng-bind-html="c.name">{{ c.name }}</span></th></tr>
+			<tr ng-repeat="row in db" ng-click="openDetails(row['filename'], $event)" ng-mouseover="updatePreview(row['filename'], $event)" ng-mouseleave="removePreview()">
+				<td ng-repeat="c in instrumentColumns">{{ row[c.id] | picker:c.format }}</td>
+			</tr>
+		</table>
+	</div>
+	<div id="imagediv" style="position: fixed; z-index: 1; left: {{previewX}}px; top: {{previewY}}px; font-size: 14px; opacity: 1.0; visibility: {{tbVisible}};">
+			<img ng-src="{{ currentThumbnail }}" width="{{previewWidth}}" height="previewHeight" />
+
+	</div>
+	<div id="detailsdiv" style="position: fixed; z-index: 1; left: 50px; top: 150px; font-size: 10pt; opacity: 0.75; visibility: {{detailsVisible}}; width=400px;" >
+			<table class='details'>
+				<tr ng-repeat="item in activeRecord">
+					<td class='columnHeader'>{{item}}</td>
+				</tr>
+			</table>
+	</div>
+	{{ statusString }}
+	<span>Sorting by: {{sortColumn}}  Reverse: {{ sortReverse }}</span>
+	<br/>
+
+</body>
+
+
+</html>
