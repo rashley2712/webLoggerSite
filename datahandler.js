@@ -109,7 +109,7 @@ function dbHandler($scope, $http) {
 	$scope.activeRecord = null;
 
 	datePath="";
-	dbfilename = "db.json.gz";
+	dbfilename = "db.json";
 	refreshTimerID = null;
 	previewMode = false;
 	detailsMode = false;
