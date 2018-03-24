@@ -109,7 +109,7 @@ function dbHandler($scope, $http) {
 	$scope.activeRecord = null;
 
 	datePath="";
-	dbfilename = "db.json";
+	dbfilename = "db.json.gz";
 	refreshTimerID = null;
 	previewMode = false;
 	detailsMode = false;
@@ -234,6 +234,7 @@ function dbHandler($scope, $http) {
 
 	}
 
+
 	$scope.updatePreview = function updatePreview(imgFilename, $event) {
 		var imageInfo = null;
 		for (var d in $scope.db) {
@@ -280,7 +281,6 @@ function dbHandler($scope, $http) {
 	}
 
 	$scope.toggleDetails = function toggleDetails() {
-		console.log("Toggle details");
 		detailsMode = !detailsMode;
 		if (!detailsMode) {
 			$scope.detailsVisible = 'hidden';
@@ -290,11 +290,25 @@ function dbHandler($scope, $http) {
 			$scope.detailsVisible = 'visible'
 
 		}
+		console.log("Toggle details: " + $scope.detailsVisible);
+
 	}
 
 
 	$scope.openDetails = function openDetails(imgFilename, $event) {
 		console.log("Getting detailed info for: " + imgFilename);
+		for (var d in $scope.db) {
+			if ($scope.db[d]['filename']==imgFilename) {
+				imageInfo = $scope.db[d]['imageData'];
+				$scope.activeRecord = $scope.db[d];
+				$scope.cursor = d;
+				break;
+			}
+		}
+		$scope.updateDetails();
+
+		$scope.detailsStyle = 'active';
+		$scope.detailsVisible = 'visible';
 	}
 
 	$scope.clear = function clear() {
@@ -407,6 +421,55 @@ function dbHandler($scope, $http) {
 		$scope.dateString = localStorage.date;
 		$scope.clear();
 		$scope.init();
+	}
+
+	$scope.updateDetails = function updateDetails() {
+		$scope.fitsHeaders= [];
+		for (key in $scope.activeRecord) {
+			$scope.fitsHeaders.push(key);
+		}
+		var imageInfo = $scope.activeRecord['imageData'];
+		var height = imageInfo.size[0];
+		var width = imageInfo.size[1];
+		var scale = 1;
+		if (height>width) {
+			scale = 300/height;
+		} else {
+			scale = 300/width;
+		}
+		$scope.previewHeight = height * scale;
+		$scope.previewWidth = width * scale;
+
+		console.log($scope.previewHeight, $scope.previewWidth);
+		$scope.currentThumbnail = $scope.telescope.path  + "/" + datePath + "/" + imageInfo.tb_src;
+
+	}
+
+	$scope.keypressed = function keypressed($event) {
+		console.log('keyCode: ' + $event.keyCode);
+		switch($event.keyCode) {
+			case 27:
+				// ESC key
+				$scope.detailsVisible = 'hidden';
+				$scope.detailsStyle = 'inactive';
+				break;
+			case 39:
+				// RIGHT arrow key
+				console.log("Cursor: " + $scope.cursor);
+				$scope.cursor++;
+				if ($scope.cursor>=$scope.db.length) $scope.cursor=0;
+				$scope.activeRecord = $scope.db[$scope.cursor];
+				$scope.updateDetails();
+				break;
+			case 37:
+				// LEFT arrow key
+				console.log("Cursor: " + $scope.cursor);
+				$scope.cursor--;
+				if ($scope.cursor<0) $scope.cursor = $scope.db.length - 1;
+				$scope.activeRecord = $scope.db[$scope.cursor];
+				$scope.updateDetails();
+				break;
+		}
 	}
 
 }
