@@ -34,7 +34,7 @@
 				background-color: lightblue;
 			}
 
-			#detailsWindow {
+			#detailsTable {
 				font-size: 15px;
 				background-color: lightgray;
 				padding: 1px;
@@ -42,8 +42,8 @@
 				/*border-collapse: collapse;*/
 			}
 
-			#detailsWindow td {
-				word-break: break-all;
+			#detailsWindow td span {
+				word-break: break-word;
 			}
 
 			#logTable table {
@@ -147,11 +147,11 @@
 	<div id="imagediv" style="position: fixed; z-index: 1; left: {{previewX}}px; top: {{previewY}}px; font-size: 14px; opacity: 1.0; visibility: {{tbVisible}};">
 			<img ng-src="{{ currentThumbnail }}" width="{{ previewWidth }}" height="{{ previewHeight }}" />
 	</div>
-	<div id="detailsdiv" style="position: fixed; overflow-y: scroll; z-index: 1; left: 150px; background-color: lightgrey; top: 50px; font-size: 10pt; opacity: 0.95; visibility: {{detailsVisible}}; width:250px; height:400px;" >
+	<div id="detailsdiv" style="position: fixed; overflow-y: scroll; z-index: 1; left: 150px; background-color: lightgrey; top: 50px; font-size: 10pt; opacity: 0.95; visibility: {{detailsVisible}}; width:500px; height:400px;" >
 			<img style="float:left;" ng-src="{{ currentThumbnail }}" width="{{ previewWidth }}" height="{{ previewHeight }}"/>
-			<table style="float:right;" id='detailsWindow'>
+			<table style="float:right;" id='detailsTable'>
 				<tr ng-repeat="item in fitsHeaders">
-					<td class='rowHeader' style='text-align:right;'>{{ item }}</td><td style="text-align:left;word-break: break-all; display: block;">{{activeRecord[item]}}</td>
+					<td class='rowHeader' style='text-align:right;'>{{ item }}</td><td style='text-align:left;'><span>{{activeRecord[item]}}<span></td>
 				</tr>
 			</table>
 	</div>
