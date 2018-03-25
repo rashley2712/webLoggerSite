@@ -42,8 +42,8 @@
 				/*border-collapse: collapse;*/
 			}
 
-			#detailsWindow td span {
-				word-break: break-word;
+			#detailsTable td span {
+				word-break: break-all;
 			}
 
 			#logTable table {
@@ -151,7 +151,7 @@
 			<img style="float:left;" ng-src="{{ currentThumbnail }}" width="{{ previewWidth }}" height="{{ previewHeight }}"/>
 			<table style="float:right;" id='detailsTable'>
 				<tr ng-repeat="item in fitsHeaders">
-					<td class='rowHeader' style='text-align:right;'>{{ item }}</td><td style='text-align:left;'><span>{{activeRecord[item]}}<span></td>
+					<td class='rowHeader' style='text-align:right;'>{{ item }}</td><td style='text-align:left;'><span>{{activeRecord[item]}}</span></td>
 				</tr>
 			</table>
 	</div>
