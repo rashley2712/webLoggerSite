@@ -14,7 +14,7 @@ function get(name){
 
 function detailsHandler($scope, $http) {
 
-	var dbFilename = 'db.json.gz';
+	var dbFilename = 'db.json';
 	var telescopes = [{'name': "WHT", 'path' : 'whta', 'imageURL' : 'whtlogo.gif', 'colour':"red" },
 									  {'name': "INT", 'path' : 'inta', 'imageURL' : 'intlogo.gif', 'colour':"blue"}];
 
