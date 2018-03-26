@@ -57,7 +57,7 @@ function detailsHandler($scope, $http) {
 		$http.get(JSONfilename,{cache: false}).
 			success(function(data, status, headers, config) {
 				console.log(headers());
-				//console.log(data);
+				console.log(data);
 				callback(data);
 			}).
 			error(function(data, status, headers, config) {
