@@ -445,8 +445,20 @@ function dbHandler($scope, $http) {
 
 	}
 
+	$scope.detailsWindow = function detailsWindow(cursor, $event) {
+		console.log("Spawn new details window: " + cursor);
+		var filename = $scope.db[$scope.cursor]['filename'];
+		var date = $scope.date.getFullYear() + ("0"+($scope.date.getMonth()+1)).slice(-2) + ("0" + $scope.date.getDate()).slice(-2);
+		var telescope = $scope.telescope.name;
+		localStorage.sortColumn = $scope.sortColumn;
+		localStorage.sortReverse = $scope.sortReverse;
+		//localStorage.telescope = $scope.telescope;
+		localStorage.filename=filename;
+		window.open('details.html?filename=' + filename + '&date=' + date + "&telescope=" + telescope,'details');
+	}
+
 	$scope.keypressed = function keypressed($event) {
-		console.log('keyCode: ' + $event.keyCode);
+		// console.log('keyCode: ' + $event.keyCode);
 		switch($event.keyCode) {
 			case 27:
 				// ESC key
@@ -468,6 +480,12 @@ function dbHandler($scope, $http) {
 				if ($scope.cursor<0) $scope.cursor = $scope.db.length - 1;
 				$scope.activeRecord = $scope.db[$scope.cursor];
 				$scope.updateDetails();
+				break;
+			case 13:
+				// ENTER key
+				if($scope.detailsVisible) {
+					$scope.detailsWindow($scope.cursor, $event);
+				}
 				break;
 		}
 	}
